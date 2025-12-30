@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div @mouseover='hovered = true' @mouseleave='hovered = false'>
     <v-tooltip left v-if='hovered'>
       <template v-slot:activator='{ on, attrs }'>
@@ -20,6 +20,19 @@
     <v-btn v-else fab dark small color='green'>
       <v-icon>mdi-upload</v-icon>
     </v-btn>
+  </div>
+</template> -->
+
+<template>
+  <div>
+    <Button
+      @click="upload()"
+      icon="pi pi-upload"
+      rounded
+      v-tooltip.bottom="{
+        value: 'Import a saved timetable',
+      }"
+    />
   </div>
 </template>
 

@@ -1,56 +1,31 @@
 <template>
-  <vue-custom-scrollbar class="scroll-area" :settings="scrollBarSettings">
+  <div class="scroll-area">
     {{ selectedCourses }}
-    <v-expansion-panels :v-model="whichCoursesExpanded" multiple focusable>
-      <selected-course-card
-        v-for="(course, code) in filterCourses(selectedCourses)"
-        :key="code"
-        :course="course"
-      />
-    </v-expansion-panels>
-  </vue-custom-scrollbar>
+    <SelectedCourseCard
+      v-for="(course, code) in filterCourses(store.selectedCourses[store.selectedSession])"
+      :key="code"
+      :course="course"
+    />
+  </div>
 </template>
 
-<script>
-import { mapGetters } from 'vuex';
-// eslint-disable-next-line import/no-unresolved
-import VueCustomScrollbar from 'vue-custom-scrollbar';
+<script setup>
+import { useTimetableStore } from '../../store/timetable';
 import SelectedCourseCard from './SelectedCourseCard.vue';
 
-export default {
-  name: 'selected-courses-panel',
-  components: {
-    SelectedCourseCard,
-    VueCustomScrollbar,
-  },
-  data() {
-    return {
-      whichCoursesExpanded: [],
-      scrollBarSettings: {
-        wheelPropagation: false,
-        maxScrollbarLength: 100,
-        swipeEasing: true,
-      },
-    };
-  },
-  computed: {
-    ...mapGetters(['selectedCourses']),
-  },
-  methods: {
-    // filters user locked timeslots
-    filterCourses(selectedCourses) {
-      const filteredCourses = {};
+const store = useTimetableStore();
 
-      for (const code in selectedCourses) {
-        if (!code.includes('Lock')) {
-          filteredCourses[code] = selectedCourses[code];
-        }
-      }
+function filterCourses(selectedCourses) {
+  const filteredCourses = {};
 
-      return filteredCourses;
-    },
-  },
-};
+  for (const code in selectedCourses) {
+    if (!code.includes('Lock')) {
+      filteredCourses[code] = selectedCourses[code];
+    }
+  }
+
+  return filteredCourses;
+}
 </script>
 
 <style scoped>

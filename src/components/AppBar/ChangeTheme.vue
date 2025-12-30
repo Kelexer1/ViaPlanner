@@ -1,32 +1,24 @@
 <template>
-  <div class='pl-1 pr-3'>
-    <v-btn
-      @click='()=>setDarkMode($vuetify.theme.dark = !$vuetify.theme.dark)'
-      icon
-    >
-      <v-tooltip bottom>
-        <template v-slot:activator='{ on, attrs }'>
-          <v-icon v-bind='attrs' v-on='on'>
-            {{ !$vuetify.theme.dark ? 'mdi-lightbulb' : 'mdi-brightness-4' }}
-          </v-icon>
-        </template>
-        <span>Change theme</span>
-      </v-tooltip>
-    </v-btn>
+  <div>
+    <Button
+      @click="store.toggleDarkMode()"
+      :icon="themeIcon"
+      rounded
+      v-tooltip.bottom="{
+        value: 'Toggle Theme',
+      }"
+      :pt:icon:class="'text-white'"
+    />
   </div>
 </template>
 
-<script>
-import { mapMutations } from 'vuex';
+<script setup>
+import { useTimetableStore } from '../../store/timetable';
+import { computed } from 'vue';
 
-export default {
-  methods: {
-    ...mapMutations(['setDarkMode']),
-  },
-};
+const store = useTimetableStore();
+
+const themeIcon = computed(() => {
+  return store.darkMode ? 'pi pi-moon' : 'pi pi-sun';
+});
 </script>
-<style>
-.v-left {
-  margin-left: 11px;
-}
-</style>

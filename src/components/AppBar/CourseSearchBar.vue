@@ -1,152 +1,134 @@
 <template>
-  <v-autocomplete
-    ref="searchBarComponent"
-    @change="onCourseSelected"
-    v-model="selectedCourse"
-    :items="allCourses"
-    flat
-    class="ml-2 mr-2"
-    hide-no-data
-    hide-details
-    :placeholder="!loading ? 'Search for a Course' : 'Loading . . .'"
-    :loading="loading"
-    :autofocus="false"
-    solo-inverted
-    style='color:#5F5F5F'
-  ></v-autocomplete>
+  <div class="w-lg">
+    <AutoComplete
+      ref="searchBarComponent"
+      @complete="populateRecommendations()"
+      @focus="onFocus()"
+      @blur="isActive = false"
+      @option-select="courseSearched()"
+      optionLabel="formattedName"
+      v-model="currentQuery"
+      :suggestions="allCourses"
+      loader="pi pi-spinner"
+      :loading="loading"
+      :placeholder="!loading ? 'Search courses...' : 'Loading...'"
+      :inputStyle="{
+        'background-color': dynamicColor,
+        'border': 'none',
+        'border-radius': '4px',
+        'color': dynamicTextColor
+      }"
+      @minLength="5"
+      fluid
+    />
+  </div>
 </template>
 
-<script>
-import { mapActions, mapMutations, mapGetters } from 'vuex';
+<script setup>
+import { ref, computed } from 'vue';
 import axios from 'axios';
+import { useTimetableStore } from '../../store/timetable';
 
-export default {
-  data() {
-    return {
-      loading: true,
-      allCourses: [],
-    };
-  },
-  async mounted() {
-    // load from cache if it exists
-    if (localStorage.searchBar) {
-      this.allCourses = JSON.parse(localStorage.searchBar);
-    }
+const store = useTimetableStore();
 
-    let rawCourses = [];
-    let campus = '';
+const searchBarComponent = ref(null);
+const allCourses = ref([]);
+const loading = ref(false);
+const isActive = ref(false);
+const currentQuery = ref(null);
 
-    try {
-      rawCourses = await axios.get(
-        `${process.env.VUE_APP_API_BASE_URL}/courses/searchbar`,
-      );
-      rawCourses = rawCourses.data;
-    } catch (e) {
-      // eslint-disable-next-line
-      console.log(e.message);
-    }
+const dynamicTextColor = computed(() => {
+  return store.darkMode ? '#ffffff' : '#222222';
+})
 
-    if (rawCourses.length !== 0) {
-      // sort the search bar
-      rawCourses.sort((a, b) => {
-        if (a.courseCode < b.courseCode) {
-          return -1;
-        } else {
-          return 1;
-        }
-      });
+const dynamicColor = computed(() => {
+  if (isActive.value || currentQuery.value) {
+    return store.darkMode ? '#18181b' : '#ffffff';
+  }
 
-      this.allCourses = rawCourses.map(course => {
-        if (course.courseCode[7] === '1') {
-          campus = 'UTSG';
-        } else if (course.courseCode[7] === '3') {
-          campus = 'UTSC';
-        } else if (course.courseCode[7] === '5') {
-          campus = 'UTM';
-        }
+  return store.darkMode ? 'rgba(0, 0, 0, 0.3)' : 'rgba(179, 179, 179, 0.3)';
+})
 
-        if (course.courseCode[8] === 'F') {
-          return `🍂   ${course.courseCode}: ${course.name} (${campus}) (2023-2024)`;
-        } else if (course.courseCode[8] === 'S') {
-          return `❄️   ${course.courseCode}: ${course.name} (${campus}) (2023-2024)`;
-        } else {
-          return `🍂❄️ ${course.courseCode}: ${course.name} (${campus}) (2023-2024)`;
-        }
-      });
-    }
-
-    localStorage.searchBar = JSON.stringify(this.allCourses);
-    this.loading = false;
-  },
-  computed: {
-    ...mapGetters([
-      'getSearchBarValue',
-      'getSemesterStatus',
-      'selectedCourses',
-    ]),
-    selectedCourse: {
-      // used as v-model for the search bar
-      get() {
-        return this.getSearchBarValue;
-      },
-      set(value) {
-        this.setSearchBarValue(value);
-      },
-    },
-    semCourses() {
-      return this.allCourses.filter(courseString => courseString[14] === ':');
-    },
-  },
-  methods: {
-    ...mapActions(['selectCourse']),
-    ...mapMutations(['setSearchBarValue', 'setSemesterStatus']),
-    async onCourseSelected() {
-      if (!this.selectedCourse) return;
-
-      // Switch the semester based on the course
-      if (this.selectedCourse[13] === 'F') {
-        this.setSemesterStatus('F');
-      } else if (this.selectedCourse[13] === 'S'){
-        this.setSemesterStatus('S');
+function parseSessionEmoji(sessions) {
+  return sessions.map(session => {
+      if (session.length < 5) {
+          return '';
       }
 
-      // Checks if the course is already added
-      for (const courseCode in this.selectedCourses) {
-        if (this.selectedCourse.includes(courseCode)) return;
-      }
+      const month = session.substring(4, 5);
 
-      // unfocus the search bar
-      this.$refs.searchBarComponent.blur();
-      this.loading = true;
-
-      let course = {};
-      const courseCode = this.selectedCourse.slice(
-        5,
-        this.selectedCourse.indexOf(':'),
-      );
-
-      try {
-        course = await axios.get(
-          `${process.env.VUE_APP_API_BASE_URL}/courses/${courseCode}`,
-        );
-        course = course.data;
-      } catch (e) {
-        // eslint-disable-next-line
-        console.log(e.message);
-      }
-
-      if (course) {
-        this.selectCourse({ course });
-      }
-
-      this.loading = false;
-    },
-  },
-};
-</script>
-
-<style scoped>
-.styles {
-  border: 5px solid #012b5c;
+      return session.length === 6 ? '☀️' : (month === '9' ? '🍁' : month === '5' ? '☀️' : '❄️');
+  }).join('');
 }
-</style>
+
+async function populateRecommendations() {
+  const query = currentQuery.value.trim();
+  if (!query || query.length < 3) {
+    return;
+  }
+
+  try {
+    loading.value = true;
+
+    const coursesDataResult = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/courses/${query}`, {
+      params: {
+        page: 1,
+        limit: 5,
+        sessions: [...store.selectedSubsessions].join(','),
+        divisions: [...store.selectedDivisions].join(',')
+      }
+    });
+
+    const courses = Array.from(coursesDataResult.data.courses);
+
+    allCourses.value = courses.map(course => {
+      course.formattedName = `${parseSessionEmoji(course.sessions)}  ${course.code} ${course.sectionCode} - ${course.name}`;
+      return course;
+    });
+
+    store.searchBarSuggestions = courses.map(course => `${course.code} ${course.sectionCode}`);
+
+    store.removeUnusedCards();
+
+    loading.value = false;
+  } catch (error) {
+    loading.value = false;
+    console.log(`Error fetching data for ${query}: ${error.message}`);
+  }
+
+}
+
+async function courseSearched() {
+  const searchValue = currentQuery.value;
+  currentQuery.value = '' // Clear search bar
+
+  store.removeUnusedCards(); // Remove any leftover cards from before
+
+  const divisionalLegends = await store.getDivisionalLegends();
+  const divisionalEnrolmentIndicators = await store.getDivisionalEnrolmentIndicators();
+
+  if (divisionalLegends && divisionalEnrolmentIndicators) {
+    store.registerDetailCard(searchValue.code, searchValue.sectionCode, {
+      courseData: searchValue,
+      divisionalData: {
+        divisionalLegends,
+        divisionalEnrolmentIndicators
+      }
+    });
+    store.setDetailCardVisibility(`${searchValue.code} ${searchValue.sectionCode}`, true);
+  } else {
+    // Show detail card without any divisional data (the property is optional)
+    store.registerDetailCard(searchValue.code, searchValue.sectionCode, {
+      courseData: searchValue
+    });
+    store.setDetailCardVisibility(`${searchValue.code} ${searchValue.sectionCode}`, true);
+  }
+}
+
+function onFocus() {
+  isActive.value = true;
+  if (allCourses.value.length > 0 && currentQuery.value && currentQuery.value.length >= 3 && searchBarComponent.value) {
+    searchBarComponent.value.overlayVisible = true;
+  }
+}
+</script>

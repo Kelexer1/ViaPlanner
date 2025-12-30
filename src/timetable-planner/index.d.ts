@@ -5,6 +5,7 @@
  * @returns {boolean}
  */
 declare const overlapExists: (timetable: Timetable) => boolean;
+
 /**
  *
  * Creates timetable by parse the meetingSections into each day and check for validity
@@ -12,6 +13,7 @@ declare const overlapExists: (timetable: Timetable) => boolean;
  * @returns {Timetable}
  */
 declare const createTimetable: (meetingSectionCombo: MeetingSection[]) => Timetable;
+
 /**
  *
  * The main function.

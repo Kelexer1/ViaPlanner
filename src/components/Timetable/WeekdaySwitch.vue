@@ -1,162 +1,81 @@
 <template>
-  <v-tooltip top>
-    <template v-slot:activator="{ on }">
-      <v-row
-        @mouseover="hovered = true"
-        @mouseleave="hovered = false"
-        justify="center"
+  <div
+    class="flex flex-row items-center justify-center"
+  >
+    <div
+      @mouseover="hovered = true"
+      @mouseleave="hovered = false"
+      class="flex flex-row justify-center items-center mt-4 mx-0 relative w-full"
+    >
+      <h3 class="day-label mb-0 mx-0 font-bold">{{ weekday }}</h3>
+      <div
+        v-if="hovered || locked"
+        class="absolute -bottom-6"
+        v-tooltip.bottom="{
+          value: toolTipText
+        }"
       >
-        <h3 class="day-label">
-          {{ weekday }}
-        </h3>
-        <div v-if="hovered || locked" v-on="on">
-          <v-btn @click="unlockDay" v-if="locked" icon>
-            <v-icon>mdi-lock</v-icon>
-          </v-btn>
-          <v-btn @click="lockDay" v-else icon>
-            <v-icon>mdi-lock-open</v-icon>
-          </v-btn>
-        </div>
-      </v-row>
-    </template>
-    <span>{{ toolTipText }}</span>
-  </v-tooltip>
+        <Button
+          v-if="locked"
+          @click="unlockDay"
+          icon="pi pi-lock"
+          rounded
+          text
+          iconClass="text-text-primary"
+        />
+        <Button
+          v-else
+          @click="lockDay"
+          icon="pi pi-lock-open"
+          rounded
+          text
+          iconClass="text-text-primary"
+        />
+      </div>
+    </div>
+  </div>
 </template>
 
-<script>
-import { mapActions, mapMutations, mapGetters } from 'vuex';
+<script setup>
+import { computed, ref } from 'vue';
+import { useTimetableStore } from '../../store/timetable';
 
-export default {
-  data() {
-    return {
-      hovered: false,
-      currStart: 28800,
-    };
+const store = useTimetableStore();
+
+const hovered = ref(false);
+
+const props = defineProps({
+  weekday: {
+    type: String,
+    required: true
   },
-  props: {
-    weekday: String,
-    semester: String,
-  },
-  computed: {
-    ...mapGetters([
-      'getLockedSections',
-      'timetable',
-      'getNoTimetablePopup',
-      'getLockedDayStatus',
-    ]),
-    locked() {
-      return this.getLockedDayStatus[this.weekday];
-    },
-    toolTipText() {
-      return !this.locked ? 'Block All Times' : 'Unblock All Times';
-    },
-    currSecData() {
-      return {
-        name: `Locked Section`,
-        courseCode: `Lock${this.semester}${this.weekday.toUpperCase()}${
-          this.currStart
-        }`,
-        meeting_sections: [
-          {
-            sectionCode: 'L0001',
-            instructors: ['NA'],
-            times: [
-              {
-                day: this.weekday.toUpperCase(),
-                start: this.currStart,
-                end: this.currStart + 3600,
-                location: 'NA',
-              },
-            ],
-          },
-        ],
-      };
-    },
-  },
-  methods: {
-    ...mapActions([
-      'selectCourse',
-      'deleteCourse',
-      'saveTimetable',
-      'resetTimetable',
-      'saveLockedDayStatus',
-    ]),
-    ...mapMutations(['lockSection', 'setLockedDayStatus', 'addCourse']),
-    lockDay() {
-      let i = 0;
+  semester: {
+    type: String,
+    required: true
+  }
+});
 
-      // save lock status
-      this.saveLockedDayStatus();
+const locked = ref(false);
 
-      this.setLockedDayStatus(this.weekday);
+const toolTipText = computed(() => {
+  return locked ? 'Block All Times' : 'Unblock All Times';
+});
 
-      // save a copy of the timetable before the change
-      this.saveTimetable();
+function lockDay() {
+  store.setLockedDayStatus(props.weekday, true);
+  store.saveStateHistory();
+  locked.value = true;
+}
 
-      // Flag is true if there is at least one course on the day that's unlocked
-      const flag = this.timetable[this.weekday.toUpperCase()].some(
-        element =>
-          !this.getLockedSections.includes(
-            `${element.code}${element.sectionCode}`,
-          ),
-      );
-      while (i < 13) {
-        this.currStart = 28800 + i * 3600;
-        if (this.validLockSection()) {
-          this.lockSection(
-            `${this.currSecData.courseCode}${this.currSecData.meeting_sections[0].sectionCode}`,
-          );
-          this.addCourse({ course: this.currSecData });
-        }
-        i += 1;
-      }
-
-      if (flag) {
-        this.resetTimetable(true);
-      }
-    },
-    unlockDay() {
-      this.setLockedDayStatus(this.weekday);
-      for (let i = 0; i < 13; i += 1) {
-        this.currStart = 28800 + i * 3600;
-        for (const lockedCourse of this.getLockedSections) {
-          if (lockedCourse.includes(this.weekday.toUpperCase())) {
-            this.deleteCourse({
-              code: lockedCourse.slice(0, lockedCourse.length - 5),
-            });
-          }
-        }
-      }
-    },
-    validLockSection() {
-      const currDayTimetable = this.timetable[this.weekday.toUpperCase()];
-      for (const section of currDayTimetable) {
-        // if the course on the timetable is locked, don't add one here
-        if (
-          this.getLockedSections.includes(
-            `${section.code}${section.sectionCode}`,
-          )
-        ) {
-          // if the locked course is in between another course, then skip it
-          if (
-            (section.start <= this.currStart && this.currStart < section.end) ||
-            (section.start < this.currStart + 3600 &&
-              this.currStart + 3600 < section.end)
-          ) {
-            return false;
-          }
-        }
-      }
-
-      return true;
-    },
-  },
-};
+function unlockDay() {
+  store.setLockedDayStatus(props.weekday, false);
+  store.saveStateHistory();
+  locked.value = false;
+}
 </script>
 
 <style scoped>
 .day-label {
-  margin-bottom: 10px;
   text-align: center;
 }
 </style>

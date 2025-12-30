@@ -22,7 +22,7 @@ const enforceConsistency = (assigned, unassigned, csp) => {
     // no values in `head`'s domain that satisfies the constraint.
     const headVal = variables[head];
     const tailVal = variables[tail];
-    const validTailValues = tailVal.filter((t) => 
+    const validTailValues = tailVal.filter((t) =>
       headVal.some((h) =>
         constraint(h, t)
       )
@@ -34,8 +34,8 @@ const enforceConsistency = (assigned, unassigned, csp) => {
 
   // Returns all the constraints where `node` is the head node.
   const incomingConstraints = (node) => csp.constraints.filter((c) => c[0] === node);
-  
-  
+
+
   let queue = csp.constraints.slice();
   const variables = partialAssignment(assigned, unassigned);
   while (queue.length) { // While there are more constraints to test.
@@ -57,8 +57,8 @@ const orderValues = (nextKey, assigned, unassigned, csp) => {
   // how many values were eliminated from all the domains (fewest
   // eliminated in the front). This helps makes success more likely
   // by keeping future options open.
-  
-  const countValues = (vars) => 
+
+  const countValues = (vars) =>
     // Returns total length of all keys
     Object.keys(vars).reduce((prevSum, key) => prevSum + vars[key].length, 0)
 
@@ -88,7 +88,7 @@ const selectUnassignedVariable = (unassigned)  => {
   let minLen = Number.POSITIVE_INFINITY;
   for (const key in unassigned) {
     const len = unassigned[key].length;
-    if (len < minLen) { 
+    if (len < minLen) {
       minKey = key;
       minLen = len;
     }
@@ -111,7 +111,7 @@ const finished = (unassigned) => Object.keys(unassigned).length === 0;
 
 const backtrack = (_assigned, unassigned, csp) => {
   // Backtracking search.
-  
+
   // Copying assigned in necessary because we modify it. Without copying
   // the object over, modifying assigned would also change values for old
   // assigned objects (which are used in callbacks).
@@ -143,7 +143,7 @@ const backtrack = (_assigned, unassigned, csp) => {
 // Solves a constraint satisfaction problem.
 // `csp` is an object that should have the properties:
 //    `variables`  : object that holds variable names and their domain.
-//    `constraints`: list of constraints where each element is an 
+//    `constraints`: list of constraints where each element is an
 //                   array of [head node, tail node, constraint function]
 //    `cb`: callback function for visualizing assignments. It is passed in
 //          an "assigned" object, an "unassigned" object, and `csp`.

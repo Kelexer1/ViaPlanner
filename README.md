@@ -1,3 +1,17 @@
+## Notice (Rewrite in progress)
+
+This repository contains ongoing modernization and rewrite efforts of the legacy codebase of ViaPlanner.
+You can find the original repo [here](https://github.com/VIAplanner/via-timetable).
+
+### Status:
+
+- Core frontend functionality completed
+- Core backend functionality completed
+- Final rewrites and additions in progress
+- NOT currently live
+
+This rewrite focuses on long-term maintainability through modern tooling and clean architecture rather than rushed production deployement
+
 <p align="center">
   <a href="https://docs.viaplanner.ca/" target="_blank">
     <img alt="VIAplanner" width="300" src="./VIA-Planner-Blue.png">

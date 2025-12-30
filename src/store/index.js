@@ -1,10 +1,9 @@
-import Vue from 'vue';
-import Vuex from 'vuex';
-import genColor from 'color-generator';
-import { generateTimetables } from '../timetable-planner/index2';
-// import colorDiff from "color-difference"
+import { createStore } from 'vuex';
 
-Vue.use(Vuex);
+import genColor from 'color-generator';
+
+import { generateTimetables } from '../timetable-planner/index2';
+
 const darkSaturation = 0.4;
 const darkLightness = 0.3;
 const lightSaturation = 0.8;
@@ -37,15 +36,24 @@ const regenerateColors = (state) => {
     course.color = genColor(state.darkMode ? darkSaturation : lightSaturation, state.darkMode ? darkLightness : lightLightness).hexString();
   });
 };
-export default new Vuex.Store({
+
+const store = createStore({
   state: {
+    divisions: ['University of Toronto Mississauga'],
+    sessions: ['20259', '20261', '20259-20261'],
+
     darkMode: localStorage.darkMode === 'true',
+
+    selectedSession: 'F',
+
     // change this number to clear storage
-    clearStorage: '2',
-    allowedConflictCourses: !localStorage.allowedConflictCourses
+    clearStorage: '3',
+
+    allowedConflictCourses: (!localStorage.allowedConflictCourses || localStorage.allowedConflictCourses == "undefined")
       ? []
       : JSON.parse(localStorage.allowedConflictCourses),
-    fallLockedHourStatus: !localStorage.fallLockedHourStatus
+
+    fallLockedHourStatus: (!localStorage.fallLockedHourStatus || localStorage.fallLockedHourStatus == "undefined")
       ? {
           '8 AM': false,
           '9 AM': false,
@@ -63,7 +71,8 @@ export default new Vuex.Store({
           '9 PM': false,
         }
       : JSON.parse(localStorage.fallLockedHourStatus),
-    fallLockedDayStatus: !localStorage.fallLockedDayStatus
+
+    fallLockedDayStatus: (!localStorage.fallLockedDayStatus || localStorage.fallLockedDayStatus == "undefined")
       ? {
           Monday: false,
           Tuesday: false,
@@ -72,13 +81,16 @@ export default new Vuex.Store({
           Friday: false,
         }
       : JSON.parse(localStorage.fallLockedDayStatus),
-    fallSelectedCourses: !localStorage.fallSelectedCourses
+
+    fallSelectedCourses: (!localStorage.fallSelectedCourses || localStorage.fallSelectedCourses == "undefined")
       ? {}
       : JSON.parse(localStorage.fallSelectedCourses),
-    fallLockedSections: !localStorage.fallLockedSections
+
+    fallLockedSections: (!localStorage.fallLockedSections || localStorage.fallLockedSections == "undefined")
       ? []
       : JSON.parse(localStorage.fallLockedSections),
-    fallTimetable: !localStorage.fallTimetable
+
+    fallTimetable: (!localStorage.fallTimetable || localStorage.fallTimetable === "undefined")
       ? {
           MONDAY: [],
           TUESDAY: [],
@@ -87,7 +99,8 @@ export default new Vuex.Store({
           FRIDAY: [],
         }
       : JSON.parse(localStorage.fallTimetable),
-    winterLockedHourStatus: !localStorage.winterLockedHourStatus
+
+    winterLockedHourStatus: (!localStorage.winterLockedHourStatus || localStorage.winterLockedHourStatus == "undefined")
       ? {
           '8 AM': false,
           '9 AM': false,
@@ -105,7 +118,8 @@ export default new Vuex.Store({
           '9 PM': false,
         }
       : JSON.parse(localStorage.winterLockedHourStatus),
-    winterLockedDayStatus: !localStorage.winterLockedDayStatus
+
+    winterLockedDayStatus: (!localStorage.winterLockedDayStatus || localStorage.winterLockedDayStatus == "undefined")
       ? {
           Monday: false,
           Tuesday: false,
@@ -114,13 +128,16 @@ export default new Vuex.Store({
           Friday: false,
         }
       : JSON.parse(localStorage.winterLockedDayStatus),
-    winterSelectedCourses: !localStorage.winterSelectedCourses
+
+    winterSelectedCourses: (!localStorage.winterSelectedCourses || localStorage.winterSelectedCourses == "undefined")
       ? {}
       : JSON.parse(localStorage.winterSelectedCourses),
-    winterLockedSections: !localStorage.winterLockedSections
+
+    winterLockedSections: (!localStorage.winterLockedSections || localStorage.winterLockedSections == "undefined")
       ? []
       : JSON.parse(localStorage.winterLockedSections),
-    winterTimetable: !localStorage.winterTimetable
+
+    winterTimetable: (!localStorage.winterTimetable || localStorage.winterTimetable == "undefined")
       ? {
           MONDAY: [],
           TUESDAY: [],
@@ -129,6 +146,7 @@ export default new Vuex.Store({
           FRIDAY: [],
         }
       : JSON.parse(localStorage.winterTimetable),
+
     exportOverlay: false,
     conflictPopup: false,
     searchBarValue: null,
@@ -174,10 +192,25 @@ export default new Vuex.Store({
     historyIndex: 0,
   },
   mutations: {
+    setSelectedSession(state, payload) {
+      state.selectedSession = payload;
+    },
+    setDivisions(state, payload) {
+      state.divisions = payload;
+    },
+    setSessions(state, payload) {
+      state.sessions = payload;
+    },
+
     setDarkMode(state, payload) {
       state.darkMode = payload;
       regenerateColors(state);
       saveState(state);
+      if (state.darkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     },
     setExportOverlay(state, payload) {
       state.exportOverlay = payload;
@@ -285,26 +318,18 @@ export default new Vuex.Store({
     removeCourse(state, payload) {
       if (payload.code.slice(0, 4) === 'Lock') {
         if (payload.code[4] === 'F') {
-          Vue.delete(state.fallSelectedCourses, payload.code);
+          delete state.fallSelectedCourses[payload.code];
         } else {
-          Vue.delete(state.winterSelectedCourses, payload.code);
+          delete state.winterSelectedCourses[payload.code];
         }
       } else if (payload.code[8] === 'F') {
-        Vue.delete(state.fallSelectedCourses, payload.code);
+        delete state.fallSelectedCourses[payload.code];
       } else if (payload.code[8] === 'S') {
-        Vue.delete(state.winterSelectedCourses, payload.code);
+        delete state.winterSelectedCourses[payload.code];
       } else if (payload.code[8] === 'Y') {
-        Vue.delete(state.fallSelectedCourses, payload.code);
-        Vue.delete(state.winterSelectedCourses, payload.code);
+        delete state.fallSelectedCourses[payload.code];
+        delete state.winterSelectedCourses[payload.code];
       }
-    },
-    // Todo
-    setLockedSections(state, payload) {
-      [state.fallLockedSections, state.winterLockedSections] = payload;
-    },
-    // Todo
-    setSelectedCourses(state, payload) {
-      [state.fallSelectedCourses, state.winterSelectedCourses] = payload;
     },
     addOrRemoveConflictCourse(state, payload) {
       const index = state.allowedConflictCourses.findIndex(
@@ -783,6 +808,9 @@ export default new Vuex.Store({
   },
   modules: {},
   getters: {
+    selectedSession: state => state.selectedSession,
+    getDivisions: state => state.divisions,
+    getSessions: state => state.sessions,
     getSerializedState: state => state.history[state.history.length - 1 + state.historyIndex],
     getExportOverlay: state => state.exportOverlay,
     getNoTimetablePopup: state => state.noTimetablePopup,
@@ -880,3 +908,5 @@ export default new Vuex.Store({
     }
   },
 });
+
+export default store;

@@ -1,0 +1,56 @@
+<template>
+<Button
+    @click="open = true"
+    label="View Legend"
+    size="small"
+    :pt:icon:class="'text-white'"
+    :pt:label:class="'text-white'"
+/>
+<Dialog
+    v-model:visible="open"
+    modal
+    :showHeader="true"
+    :style="{ width: '50rem', padding: '1rem' }"
+    :draggable="true"
+    :header="`${ division } Enrolment Legend`"
+>
+    <div class="flex flex-col items-end">
+        <div class="mt-3">
+            <ul v-for="enrolmentIndicator in enrolmentIndicators" :key="enrolmentIndicator.code">
+                <li :class="highlights.includes(enrolmentIndicator.code) ? 'enrolmentHighlight' : ''">
+                    <span class="font-medium">{{ enrolmentIndicator.code }}</span> - <span>{{ enrolmentIndicator.name }}</span>
+                </li>
+                <br>
+            </ul>
+        </div>
+    </div>
+</Dialog>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+
+const open = ref(false);
+
+const props = defineProps({
+    enrolmentIndicators: {
+        type: Object,
+        required: true
+    },
+    division: {
+        type: String,
+        required: true
+    },
+    highlights: {
+        type: Array,
+        required: true
+    }
+})
+</script>
+
+<style scoped>
+.enrolmentHighlight {
+    background-color: var(--color-divisional-highlight);
+    border-radius: 4px;
+}
+</style>

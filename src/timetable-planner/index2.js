@@ -1,4 +1,7 @@
-import sortCourseSection from './combinations/combinations';
+// import sortCourseSection from './combinations/combinations';
+
+// import sortCourseSection from './index.js';
+
 import cspSolve from './csp';
 
 /**

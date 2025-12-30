@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div @mouseover="hovered = true" @mouseleave="hovered = false">
     <v-tooltip left v-if="hovered">
       <template v-slot:activator="{ on, attrs }">
@@ -21,7 +21,21 @@
       <v-icon>mdi-share-variant</v-icon>
     </v-btn>
   </div>
+</template> -->
+
+<template>
+  <div>
+    <Button
+      @click="getLink()"
+      icon="pi pi-share-alt"
+      rounded
+      v-tooltip.bottom="{
+        value: 'Share timetable',
+      }"
+    />
+  </div>
 </template>
+
 
 <script>
 /* eslint-disable no-console */

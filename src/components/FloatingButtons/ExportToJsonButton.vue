@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div @mouseover="hovered = true" @mouseleave="hovered = false">
     <v-tooltip left v-if="hovered">
       <template v-slot:activator="{ on, attrs }">
@@ -20,6 +20,16 @@
     <v-btn v-else fab dark small color="green">
       <v-icon>mdi-download</v-icon>
     </v-btn>
+  </div>
+</template> -->
+
+<template>
+  <div>
+    <Button
+      @click="forceFileDownload()"
+      rounded
+      icon="pi pi-download"
+    />
   </div>
 </template>
 

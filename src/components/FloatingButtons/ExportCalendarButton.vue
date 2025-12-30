@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div @mouseover="hovered = true" @mouseleave="hovered = false">
     <v-tooltip left v-if="hovered">
       <template v-slot:activator="{ on, attrs }">
@@ -21,7 +21,20 @@
       <v-icon>mdi-calendar</v-icon>
     </v-btn>
   </div>
+</template> -->
+
+<template>
+  <div>
+    <Button
+      @click="exportTimetables()"
+      rounded
+      icon="pi pi-download"
+    />
+  </div>
 </template>
+
+<script setup>
+</script>
 
 <script>
 /* eslint-disable no-console */
