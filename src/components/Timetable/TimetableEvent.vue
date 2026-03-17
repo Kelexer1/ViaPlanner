@@ -9,7 +9,7 @@
     <div
       v-if="!isEmpty"
       class="h-full text-white p-1 text-sm"
-      @mouseover="hovered = true"
+      @mouseenter="hovered = true"
       @mouseleave="hovered = false"
     >
       <div
@@ -18,7 +18,7 @@
         <h3 class="font-bold relative">{{ eventData.course }}</h3>
         <div class="absolute right-0">
           <Button
-            v-if="locked"
+            v-if="sectionLocked"
             rounded
             text
             icon="pi pi-lock"
@@ -47,13 +47,14 @@
       @mouseleave="hovered = false"
     >
       <div
-        v-if="hovered"
+        v-show="hovered"
         class="m-0 p-0 h-[100%] flex items-center"
         @click="blockTimeToggle()"
         v-ripple
       >
         <p
-          class="center unselectable text-text-primary"
+          v-show="hovered"
+          class="text-center unselectable text-text-primary w-full"
         >
           {{ dynamicText }}
         </p>
@@ -116,41 +117,42 @@ const getHeight = computed(() => {
 });
 
 const dynamicText = computed(() => {
-  return !locked.value ? 'Block This Time' : 'Unblock This Time';
+  return !timeBlocked.value ? 'Block This Time' : 'Unblock This Time';
 });
 
 const dynamicColor = computed(() => {
   const lockedColor = 'bg-timetablecell-hover';
   const background = 'bg-transparent';
 
-  if (locked.value) {
+  if (timeBlocked.value) {
     return lockedColor;
   }
 
   return hovered.value ? lockedColor : background;
 });
 
-const locked = computed(() => {
-  const blockedTimesForSemester = store.blockedTimes[props.semester];
-  const blockedActivities = Object.keys(store.lockedSections[props.semester]);
+const sectionLocked = computed(() => {
+  const lockedActivitiesForCourse = store.lockedSections[props.semester][props.eventData.course] || [];
+  return lockedActivitiesForCourse.includes(props.eventData.activity);
+});
+
+const timeBlocked = computed(() => {
+  const blockedTimesForSemester = store.blockedTimes[props.semester] || [];
 
   return blockedTimesForSemester.some(blocker => {
     return blocker.day === props.day &&
       blocker.start === props.eventData.start &&
       blocker.end === props.eventData.end;
-  }) || blockedActivities.some(activity => {
-    const lecActivity = activity.split('-');
-    return props.eventData.course === lecActivity[0] && props.eventData.activity === lecActivity[1];
   });
 });
 
-function blockSectionToggle() {
-  store.setLockSection(props.eventData.course, props.eventData.activity, !locked.value);
+async function blockSectionToggle() {
+  await store.setLockedSectionStatus(props.eventData.course, props.eventData.activity, !sectionLocked.value);
   store.saveStateHistory();
 }
 
-function blockTimeToggle() {
-  store.setBlockedTime(props.semester, props.day, props.eventData.start, props.eventData.end, !locked.value);
+async function blockTimeToggle() {
+  await store.setLockedTimeStatus(props.semester, props.day, props.eventData.start, props.eventData.end, !timeBlocked.value);
   store.saveStateHistory();
 }
 

@@ -6,7 +6,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, watch } from 'vue';
 import { useTimetableStore } from './store/timetable';
 import CourseDetailCardsLayer from './components/CourseDetails/CourseDetailCardsLayer.vue';
 
@@ -14,9 +14,12 @@ const store = useTimetableStore();
 
 onMounted(() => {
   store.initializeHistory();
+  store.updatePreferences();
   initializeSessionGroup();
   applyDarkMode();
   generateCourseCards();
+  loadCoursesToBuilder();
+  store.loadBlockedTimesToBuilder();
 });
 
 async function initializeSessionGroup() {
@@ -55,6 +58,20 @@ async function generateCourseCards() {
     }
   }
 }
+
+async function loadCoursesToBuilder() {
+  for (const session of Object.values(store.selectedCourses)) {
+    for (const course of Object.values(session)) {
+      store.addCourseToBuilder(course["courseData"]);
+    }
+  }
+}
+
+watch(() => [store.maxGap, store.maxDayLength, store.minDayLength, store.maxHours, store.prefferedStart,
+             store.prefferedMaxEnd, store.onlinePreference, store.avoidRushHour],
+      () => store.updatePreferences()
+);
+
 </script>
 
 <style lang='scss'>

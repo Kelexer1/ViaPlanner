@@ -31,7 +31,7 @@ const routes = [
   {
     path: '/test',
     name: 'test',
-    component: () => import('@/components/FloatingButtons/HelpDial.vue')
+    component: () => import('@/components/AppBar/TimetableSettings/ProfileSelector.vue')
   },
   {
     path: '/:catchAll(.*)',

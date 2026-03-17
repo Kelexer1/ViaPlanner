@@ -11,7 +11,7 @@
                 <div class="flex flex-row justify-between w-full items-center">
                     <h2 class="text-2xl font-bold">{{ `${courseData.code} ${courseData.sectionCode} - ${courseData.name}` }}</h2>
                     <Button
-                        @click="addCourse(null)"
+                        @click="addCourse()"
                         icon="pi pi-plus"
                         label="Quick Add Course"
                         class="mr-3"
@@ -134,9 +134,9 @@ const divisionalLegend = computed(() => {
     return props.divisionalData.divisionalLegends.data.data.find(legend => legend.division === props.courseData.faculty.code);
 });
 
-function addCourse() {
+async function addCourse() {
     // Remove any old references to prevent duplicates
-    store.removeCourse(props.courseData.code);
+    await store.removeCourse(props.courseData.code);
 
     // todo make this choose very basic 'good' spots with some bad algorithm for speed
     const lecs = props.courseData.sections.filter((section) => section.type === 'Lecture');
@@ -151,7 +151,7 @@ function addCourse() {
     selectedTut.value = tut;
     selectedPra.value = pra;
 
-    store.addCourse(props.courseData.code, lec, tut, pra, props.courseData);
+    await store.addCourse(props.courseData.code, lec, tut, pra, props.courseData);
     store.saveStateHistory();
 }
 

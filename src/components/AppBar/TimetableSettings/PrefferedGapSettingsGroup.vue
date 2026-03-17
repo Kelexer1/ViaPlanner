@@ -1,11 +1,11 @@
 <template>
-    <div class="flex flex-row items-start justify-between">
-        <AvoidGapsSwitch/>
+    <div class="flex flex-col items-start justify-between">
         <MaxHoursInput/>
+        <MaxGapInput/>
     </div>
 </template>
 
 <script setup>
-import AvoidGapsSwitch from './AvoidGapsSwitch.vue';
-import MaxHoursInput from './MaxHoursInput.vue';
+import MaxHoursInput from './MaxContinuousHoursInput.vue';
+import MaxGapInput from './MaxGapInput.vue';
 </script>

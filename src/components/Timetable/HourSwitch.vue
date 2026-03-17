@@ -1,6 +1,6 @@
 <template>
   <div
-    @mouseover="hovered = true"
+    @mouseenter="hovered = true"
     @mouseleave="hovered = false"
     class="h-full"
   >
@@ -63,14 +63,14 @@ const intTime = computed(() => {
 
 const locked = ref(false);
 
-function lockHour() {
-  store.setLockedHourStatus(intTime.value, true);
+async function lockHour() {
+  await store.setLockedHourStatus(intTime.value, true);
   store.saveStateHistory();
   locked.value = true;
 }
 
-function unlockHour() {
-  store.setLockedHourStatus(intTime.value, false);
+async function unlockHour() {
+  await store.setLockedHourStatus(intTime.value, false);
   store.saveStateHistory();
   locked.value = false;
 }

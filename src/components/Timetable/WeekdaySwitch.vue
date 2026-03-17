@@ -3,7 +3,7 @@
     class="flex flex-row items-center justify-center"
   >
     <div
-      @mouseover="hovered = true"
+      @mouseenter="hovered = true"
       @mouseleave="hovered = false"
       class="flex flex-row justify-center items-center mt-4 mx-0 relative w-full"
     >
@@ -61,14 +61,14 @@ const toolTipText = computed(() => {
   return locked ? 'Block All Times' : 'Unblock All Times';
 });
 
-function lockDay() {
-  store.setLockedDayStatus(props.weekday, true);
+async function lockDay() {
+  await store.setLockedDayStatus(props.weekday, true);
   store.saveStateHistory();
   locked.value = true;
 }
 
-function unlockDay() {
-  store.setLockedDayStatus(props.weekday, false);
+async function unlockDay() {
+  await store.setLockedDayStatus(props.weekday, false);
   store.saveStateHistory();
   locked.value = false;
 }

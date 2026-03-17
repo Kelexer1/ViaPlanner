@@ -33,16 +33,17 @@
       <div
         class="flex flex-row gap-2"
       >
+        <ChangeTheme/>
         <SearchSettings/>
         <TimetableSettingsMenu/>
-        <ChangeTheme/>
         <SessionSelect/>
+        <BuildTimetableButton/>
       </div>
     </div>
     <div class="flex flex-row w-full">
       <div class="w-full">
         <router-view/>
-        <div class="w-full flex flex-row items-center justify-center footer"><p class="my-3 font-medium">Copyright © 2025 VIAplanner</p></div>
+        <div class="w-full flex flex-row items-center justify-center footer"><p class="my-3 font-medium">Copyright © 2026 VIAplanner</p></div>
       </div>
       <div class="w-[25%]">
         <SideBar/>
@@ -60,6 +61,7 @@ import ChangeTheme from '../components/AppBar/ChangeTheme.vue';
 import TimetableSettingsMenu from '../components/AppBar/TimetableSettings/TimetableSettingsMenu.vue';
 import SideBar from '../components/SidePanel/SideBar.vue';
 import SearchSettings from '../components/AppBar/SearchSettings/SearchSettings.vue';
+import BuildTimetableButton from '../components/AppBar/BuildTimetableButton.vue';
 
 const store = useTimetableStore();
 </script>

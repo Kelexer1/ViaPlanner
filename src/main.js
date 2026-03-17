@@ -10,7 +10,6 @@ import 'primeflex/primeflex.css';
 
 import { createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
-import { useTimetableStore } from './store/timetable';
 
 import vueHtml2canvas from 'vue-html2canvas';
 import VueMobileDetection from "vue-mobile-detection";
@@ -20,7 +19,6 @@ import 'roboto-fontface/css/roboto/roboto-fontface.css';
 
 import App from './App.vue'
 import router from './router';
-import store from './store';
 
 const Noir = definePreset(Aura, {
   semantic: {
@@ -97,6 +95,5 @@ app.use(pinia);
 app.use(vueHtml2canvas);
 app.use(VueMobileDetection);
 app.use(router);
-app.use(store);
 
 app.mount('#app');

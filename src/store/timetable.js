@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import axios from 'axios';
 
 import genColor from 'color-generator';
-import { generateTimetables } from '../timetable-planner/index2';
+import { getViaBuilderManager } from '../builder/builder';
 
 const darkSaturation = 0.4;
 const darkLightness = 0.3;
@@ -10,6 +10,9 @@ const lightSaturation = 0.8;
 const lightLightness = 0.85;
 
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+// For timetable builder, blocked timeslots are treated as a course with 1 section
+const blockedTimesCourseCodePlaceholder = "BLOCKERS";
 
 export const useTimetableStore = defineStore('timetable', {
 
@@ -43,11 +46,15 @@ state: () => ({
     // Timetable Generation Settings
     prefferedStart: 9,
     prefferedMaxEnd: 15,
-    avoidGaps: true,
+    maxDayLength: 6,
+    minDayLength: 2,
+    maxGap: 2,
     maxHours: 3,
     onlinePreference: 'Neutral',
-    preferDayOff: false,
     includeUnavailable: true,
+    avoidRushHour: false,
+    parameterProfile: 'Neutral',
+    currentlyBuildingTimetable: false,
 
 
     // Detail Cards
@@ -64,6 +71,15 @@ state: () => ({
     blockedTimes: {
         'F': [],
         'S': []
+    },
+    blockedTimesPlaceholderCourse: {
+        "code": blockedTimesCourseCodePlaceholder,
+        "campus": "",
+        "type": "",
+        "sections": [{
+            "name": "",
+            "meetingTimes": []
+        }]
     },
 
     // {
@@ -109,11 +125,7 @@ state: () => ({
     },
 
     // {
-    //     <courseCode>-<activity>: [{     The course code and activity (ex. 'CSC108H5-LEC0101')
-    //         day: Number,     The day the locked section event is on (Monday = 1, Tuesday = 2 ... 7 = Sunday)
-    //         start: Number,   The start time in seconds after midnight
-    //         end: Number      The end time in seconds after midnight
-    //     }]
+    //     <courseCode>: [<activityCode>]  The locked activity codes for each course
     // }
     lockedSections: {
         'F': {},
@@ -157,103 +169,156 @@ actions: {
         }
     },
 
-    setLockedHourStatus(hour, lock) {
+    async setLockedHourStatus(hour, lock) {
         const start = hour * 3600; // Convert to seconds
         const end = start + 3600; // Blocker lasts 1 hour
 
         for (let day = 0; day < days.length; day++) {
-            if (lock) {
-                // Add a new blocker if none already exist
-                if (!this.blockedTimes[this.selectedSession].some((blocker) => {
-                    blocker.day === days[day] &&
-                    blocker.start === start &&
-                    blocker.end === end
-                })) {
-                    this.blockedTimes[this.selectedSession].push({
-                        day: days[day],
-                        start,
-                        end
-                    });
-                }
-            } else {
-                this.blockedTimes[this.selectedSession] = this.blockedTimes[this.selectedSession].filter((blocker) => !(
-                    blocker.day === days[day] &&
-                    blocker.start === start &&
-                    blocker.end === end
-                ));
-            }
+            this.setBlockedTime(this.selectedSession, day, start, end, lock);
         }
+
+        const manager = await getViaBuilderManager();
+        manager.removeCourse(blockedTimesCourseCodePlaceholder, "");
+        manager.addCourse(this.blockedTimesPlaceholderCourse);
+        this.generateTimetable();
     },
 
-    setLockedDayStatus(day, lock) {
+    async setLockedDayStatus(day, lock) {
+        let dayNum = days.indexOf(day);
         for (let hour = 8; hour <= 22; hour++) {
             const start = hour * 3600; // Convert to seconds
             const end = start + 3600; // Blocker lasts 1 hour
 
-            if (lock) {
-                // Add a new blocker if none already exist
-                if (!this.blockedTimes[this.selectedSession].some((blocker) => {
-                    blocker.day === day &&
-                    blocker.start === start &&
-                    blocker.end === end
-                })) {
-                    this.blockedTimes[this.selectedSession].push({
-                        day,
-                        start,
-                        end
-                    });
-                }
-            } else {
-                this.blockedTimes[this.selectedSession] = this.blockedTimes[this.selectedSession].filter((blocker) => !(
-                    blocker.day === day &&
-                    blocker.start === start &&
-                    blocker.end === end
-                ));
-            }
+            this.setBlockedTime(this.selectedSession, dayNum, start, end, lock);
         }
+
+        const manager = await getViaBuilderManager();
+        manager.removeCourse(blockedTimesCourseCodePlaceholder, "");
+        manager.addCourse(this.blockedTimesPlaceholderCourse);
+        this.generateTimetable();
     },
 
-    setLockSection(course, activity, lock) {
-        const key = `${course}-${activity}`;
-        const sessionData = this.lockedSections[this.selectedSession];
+    async setLockedTimeStatus(semester, day, start, end, lock) {
+        let dayNum = days.indexOf(day);
+        this.setBlockedTime(semester, dayNum, start, end, lock);
 
-        if (lock) {
-            // Since this method can only really be called when the course is selected, we can just assume
-            // that it exists in the selected courses dict
-            const foundActivity = this.selectedCourses[this.selectedSession][course]
-                .courseData.sections
-                .find(section => section.name === activity);
-
-            // Push the new blockers created from the activities course data
-            this.lockedSections[this.selectedSession] = {
-                ...sessionData,
-                [key]: foundActivity.meetingTimes.map(({ day, start, end }) => ({ day, start, end }))
-            };
-        } else {
-            const { [key]: _, ...rest } = sessionData;
-            this.lockedSections[this.selectedSession] = rest;
-        }
+        const manager = await getViaBuilderManager();
+        manager.removeCourse(blockedTimesCourseCodePlaceholder, "");
+        manager.addCourse(this.blockedTimesPlaceholderCourse);
     },
 
     setBlockedTime(semester, day, start, end, block) {
         if (block) {
-            this.blockedTimes[semester].push({
-                day,
-                start,
-                end
-            });
+            // Add a new blocker if none already exist
+            if (!this.blockedTimes[semester].some((blocker) => (
+                blocker.day === days[day] &&
+                blocker.start === start &&
+                blocker.end === end
+            ))) {
+                this.blockedTimes[semester].push({
+                    "day": days[day],
+                    start,
+                    end
+                });
+            }
+            if (!this.blockedTimesPlaceholderCourse.sections[0].meetingTimes.some(blocker => (
+                blocker.day === day &&
+                blocker.start === start &&
+                blocker.end === end
+            ))) {
+                this.blockedTimesPlaceholderCourse.sections[0].meetingTimes.push({
+                    start,
+                    end,
+                    day,
+                    "online": false,
+                    "zz": true,
+                    "semester": this.getSemesterIndex(semester)
+                });
+            }
         } else {
-            this.blockedTimes[semester] = this.blockedTimes[semester].filter(blocker => {
-                return !(
-                    blocker.day === day &&
-                    blocker.start === start &&
-                    blocker.end === end
-                );
-            });
+            this.blockedTimes[semester] = this.blockedTimes[semester].filter(blocker => !(
+                blocker.day === days[day] && blocker.start === start && blocker.end === end
+            ));
+            this.blockedTimesPlaceholderCourse.sections[0].meetingTimes = 
+                this.blockedTimesPlaceholderCourse.sections[0].meetingTimes.filter(blocker => !(
+                    blocker.day === day && blocker.start === start && blocker.end === end
+                ));
         }
     },
 
-    addCourse(course, lec, tut, pra, courseData) {
+    syncBlockedTimesPlaceholderCourse() {
+        const meetingTimes = [];
+
+        for (const [semester, blockers] of Object.entries(this.blockedTimes)) {
+            const semesterIndex = this.getSemesterIndex(semester);
+
+            for (const blocker of blockers) {
+                const dayIndex = typeof blocker.day === 'number' ? blocker.day : days.indexOf(blocker.day);
+                if (dayIndex < 0) continue;
+
+                meetingTimes.push({
+                    start: blocker.start,
+                    end: blocker.end,
+                    day: dayIndex,
+                    online: false,
+                    zz: false,
+                    semester: semesterIndex
+                });
+            }
+        }
+
+        this.blockedTimesPlaceholderCourse = {
+            ...this.blockedTimesPlaceholderCourse,
+            sections: [{
+                ...this.blockedTimesPlaceholderCourse.sections[0],
+                meetingTimes
+            }]
+        };
+    },
+
+    async loadBlockedTimesToBuilder() {
+        this.syncBlockedTimesPlaceholderCourse();
+
+        const manager = await getViaBuilderManager();
+        manager.removeCourse(blockedTimesCourseCodePlaceholder, "");
+        manager.addCourse(this.blockedTimesPlaceholderCourse);
+    },
+
+    async setLockedSectionStatus(course, activity, lock) {
+        const sessionData = this.lockedSections[this.selectedSession];
+        const courseData = this.selectedCourses[this.selectedSession][course];
+        const lockedActivities = Array.isArray(sessionData[course]) ? sessionData[course] : [];
+
+        if (lock) {
+            if (!lockedActivities.includes(activity)) {
+                this.lockedSections[this.selectedSession] = {
+                    ...sessionData,
+                    [course]: [...lockedActivities, activity]
+                };
+            }
+        } else {
+            const updatedActivities = lockedActivities.filter((lockedActivity) => lockedActivity !== activity);
+            const nextLockedSections = {
+                ...sessionData
+            };
+
+            if (updatedActivities.length === 0) {
+                delete nextLockedSections[course];
+            } else {
+                nextLockedSections[course] = updatedActivities;
+            }
+
+            this.lockedSections[this.selectedSession] = {
+                ...nextLockedSections
+            };
+        }
+
+        const manager = await getViaBuilderManager();
+        manager.removeCourse(course, activity.substring(0, 4).toUpperCase()); // LEC TUT or PRA
+        await this.addCourseToBuilder(courseData.courseData);
+    },
+
+    async addCourse(course, lec, tut, pra, courseData) {
         for (const sessionCode of courseData.sessions) {
             const session = this.subsessionCodeToSession(sessionCode);
             this.selectedCourses[session][course] = {
@@ -265,25 +330,115 @@ actions: {
             }
         }
 
-        // This is called by watchers in CourseDetailsPopup.vue, I'm too lazy to try to make it work here
-        // if (lec) this.timetableRegisterActivity(courseData, lec);
-        // if (tut) this.timetableRegisterActivity(courseData, tut);
-        // if (pra) this.timetableRegisterActivity(courseData, pra);
+        await this.addCourseToBuilder(courseData);
+        this.generateTimetable();
     },
 
-    removeCourse(course) {
+    async addCourseToBuilder(courseData) {
+        const manager = await getViaBuilderManager();
+
+        const lockedSectionsByType = {
+            LEC: null,
+            TUT: null,
+            PRA: null
+        };
+
+        for (const session of ['F', 'S']) {
+            const sessionLockedSections = this.lockedSections[session][courseData.code] || [];
+
+            for (const lockedSection of sessionLockedSections) {
+                const type = lockedSection.slice(0, 3).toUpperCase();
+                if (!lockedSectionsByType[type]) {
+                    lockedSectionsByType[type] = lockedSection;
+                }
+            }
+        }
+
+        // LEC, TUT, PRA
+        const lecturesJSON = {};
+        const tutorialsJSON = {};
+        const practicalsJSON = {};
+
+        for (const courseJSON of [lecturesJSON, tutorialsJSON, practicalsJSON]) {
+            courseJSON["code"] = courseData["code"];
+            courseJSON["campus"] = courseData["campus"];
+            courseJSON["sections"] = [];
+        }
+        
+        const sessionsToSemester = {};
+        const match = this.selectedSessionGroup?.match(/-(\d+)-(\d+)/);
+        if (match) {
+            sessionsToSemester[match[1]] = 0;
+            sessionsToSemester[match[2]] = 1;
+        } else {
+            courseData.sessions.forEach((sessionCode, index) => {
+                sessionsToSemester[sessionCode] = index;
+            });
+        }
+
+        for (const sectionData of courseData["sections"]) {
+            const sectionJSON = {};
+            sectionJSON["name"] = sectionData["name"];
+            sectionJSON["meetingTimes"] = [];
+
+            let hasMeetingTime = false;
+            const meetingTimes = Array.isArray(sectionData["meetingTimes"]) ? sectionData["meetingTimes"] : Object.values(sectionData["meetingTimes"] || {});
+            for (const meetingTimeData of meetingTimes) {
+                const buildingCode = meetingTimeData["building"]["buildingCode"];
+                const meetingTimeJSON = {};
+                meetingTimeJSON["start"] = meetingTimeData["start"];
+                meetingTimeJSON["end"] = meetingTimeData["end"];
+                meetingTimeJSON["day"] = meetingTimeData["day"] - 1;
+                meetingTimeJSON["online"] = (buildingCode === "");
+                meetingTimeJSON["zz"] = (buildingCode === "ZZ");
+                meetingTimeJSON["semester"] = sessionsToSemester[meetingTimeData["sessionCode"]];
+                sectionJSON["meetingTimes"].push(meetingTimeJSON);
+                hasMeetingTime = true;
+            }
+
+            if (!hasMeetingTime) continue; 
+
+            const normalizedType = String(sectionData["type"] || '').toLowerCase();
+            const sectionName = String(sectionData["name"] || '').toUpperCase();
+
+            if (normalizedType.includes('lecture') || sectionName.startsWith('LEC')) {
+                if (lockedSectionsByType.LEC && sectionName !== String(lockedSectionsByType.LEC).toUpperCase()) continue;
+                lecturesJSON["sections"].push(sectionJSON);
+            } else if (normalizedType.includes('tutorial') || sectionName.startsWith('TUT')) {
+                if (lockedSectionsByType.TUT && sectionName !== String(lockedSectionsByType.TUT).toUpperCase()) continue;
+                tutorialsJSON["sections"].push(sectionJSON);
+            } else if (normalizedType.includes('practical') || sectionName.startsWith('PRA')) {
+                if (lockedSectionsByType.PRA && sectionName !== String(lockedSectionsByType.PRA).toUpperCase()) continue;
+                practicalsJSON["sections"].push(sectionJSON);
+            }
+        }
+
+        if (lecturesJSON["sections"].length > 0) {
+            lecturesJSON["type"] = "LEC";
+            manager.removeCourse(lecturesJSON["code"], "LEC");
+            manager.addCourse(lecturesJSON);
+        }
+
+        if (tutorialsJSON["sections"].length > 0) {
+            tutorialsJSON["type"] = "TUT";
+            manager.removeCourse(tutorialsJSON["code"], "TUT");
+            manager.addCourse(tutorialsJSON);
+        }
+
+        if (practicalsJSON["sections"].length > 0) {
+            practicalsJSON["type"] = "PRA";
+            manager.removeCourse(practicalsJSON["code"], "PRA");
+            manager.addCourse(practicalsJSON);
+        }
+    },
+
+    async removeCourse(course) {
         for (const session of ['F', 'S']) {
             // Remove course from selectedCourses
             delete this.selectedCourses[session][course];
 
             // Remove course from lockedSections
-            const lockedSectionsKeys = Object.keys(this.lockedSections[session]).filter(blocker => {
-                return blocker.split('-')[0] === course;
-            });
-
-            lockedSectionsKeys.forEach(key => {
-                delete this.lockedSections[session][key];
-            });
+            delete this.lockedSections[session][course];
 
             // Remove course from timetable
             for (const day of Object.keys(this.timetables[session])) {
@@ -294,7 +449,95 @@ actions: {
             }
         }
 
+        const manager = await getViaBuilderManager();
+
+        for (const type of ["LEC", "TUT", "PRA"]) manager.removeCourse(course, type);
+
         this.removeUnusedCards();
+        this.generateTimetable();
+    },
+
+    async generateTimetable() {
+        if (this.currentlyBuildingTimetable) return;
+        this.currentlyBuildingTimetable = true;
+        const manager = await getViaBuilderManager();
+        const timetable = manager.build();
+        this.applyBuiltTimetable(timetable);
+        this.saveStateHistory();
+        this.currentlyBuildingTimetable = false;
+    },
+
+    applyBuiltTimetable(timetable) {
+        if (!timetable || Object.keys(timetable).length === 0) {
+            this.noTimetablePopup = true;
+            return;
+        }
+
+        this.noTimetablePopup = false;
+
+        const normalizedTimetable = this.normalizeBuiltTimetable(timetable);
+
+        for (const session of Object.keys(normalizedTimetable)) {
+            for (const course of normalizedTimetable[session]) {
+                if (course["code"] === blockedTimesCourseCodePlaceholder) continue;
+                const courseData = this.selectedCourses[session][course["code"]];
+                if (!courseData) continue;
+                switch (course["type"]) {
+                case "LEC":
+                    courseData["lec"] = course["section"];
+                    break;
+                case "TUT":
+                    courseData["tut"] = course["section"];
+                    break;
+                case "PRA":
+                    courseData["pra"] = course["section"];
+                    break;
+                default:
+                    continue;
+                }
+
+                this.timetableModifyActivity(courseData["courseData"], course["section"]);
+            }
+        }
+    },
+
+    normalizeBuiltTimetable(timetable) {
+        const normalized = { F: [], S: [] };
+
+        for (const entry of timetable) {
+            if (!entry || entry["code"] === blockedTimesCourseCodePlaceholder) {
+                continue;
+            }
+
+            const candidateSessions = ["F", "S"].filter((session) => {
+                return !!this.selectedCourses[session][entry["code"]];
+            });
+
+            if (candidateSessions.length === 1) {
+                normalized[candidateSessions[0]].push(entry);
+                continue;
+            }
+
+            if (candidateSessions.length > 1) {
+                const matchedSessions = candidateSessions.filter((session) => {
+                    const selectedCourse = this.selectedCourses[session][entry["code"]];
+                    const sectionData = selectedCourse?.courseData?.sections?.find((section) => section.name === entry["section"]);
+                    if (!sectionData) return false;
+
+                    const meetingTimes = Array.isArray(sectionData.meetingTimes)
+                        ? sectionData.meetingTimes
+                        : Object.values(sectionData.meetingTimes || {});
+
+                    return meetingTimes.some((meetingTime) => this.subsessionCodeToSession(meetingTime.sessionCode) === session);
+                });
+
+                for (const session of (matchedSessions.length > 0 ? matchedSessions : candidateSessions)) {
+                    normalized[session].push(entry);
+                }
+            }
+        }
+
+        return normalized;
     },
 
     regenerateColors() {
@@ -479,12 +722,12 @@ actions: {
                 const day = days[meetingTime.day - 1];
                 session = this.subsessionCodeToSession(meetingTime.sessionCode);
 
-                if (!this.timetables[session][day].some((timeslot) => {
+                if (!this.timetables[session][day].some((timeslot) => (
                     timeslot.course === courseData.code &&
                     timeslot.activity === activityName &&
                     timeslot.start === meetingTime.start &&
                     timeslot.end === meetingTime.end
-                })) {
+                ))) {
                     this.timetables[session][day].push({
                         course: courseData.code,
                         activity: activityName,
@@ -500,9 +743,9 @@ actions: {
 
     timetableRemoveActivity(activityName) {
         for (const day of days) {
-            this.timetables[this.selectedSession][day] = this.timetables[this.selectedSession][day].filter((event) => {
+            this.timetables[this.selectedSession][day] = this.timetables[this.selectedSession][day].filter((event) => (
                 event.activity !== activityName
-            });
+            ));
         }
     },
 
@@ -541,6 +784,10 @@ actions: {
     },
 
     subsessionCodeToSession(subsessionCode) {
+        if (!this.sessions || !this.sessions.data) {
+            return undefined;
+        }
+
         // 20259 -> F
         for (const sessionGroup of this.sessions.data) {
             for (const subsession of sessionGroup.subsessions) {
@@ -553,6 +800,10 @@ actions: {
                 }
             }
         }
+    },
+
+    getSemesterIndex(semester) {
+        return semester === "F" ? 0 : 1;
     },
 
     parseTime(seconds) {
@@ -596,6 +847,21 @@ actions: {
             'F': {},
             'S': {}
         };
+    },
+
+    async updatePreferences() {
+        const manager = await getViaBuilderManager();
+        manager.setPreferences({
+            "MAX_GAP": this.maxGap,
+            "MAX_DAY_LENGTH": this.maxDayLength,
+            "MIN_DAY_LENGTH": this.minDayLength,
+            "MAX_CONTINUOUS_CLASSES": this.maxHours,
+            "PREFFERED_MIN_START": this.prefferedStart * 3600,
+            "PREFFERED_MAX_END": this.prefferedMaxEnd * 3600,
+            "GUARANTEE_CROSS_CAMPUS_GAP": true,
+            "AVOID_RUSH_HOURS": this.avoidRushHour,
+            "ONLINE_PREFERENCE": this.onlinePreference === "Avoid" ? 0 : this.onlinePreference === "Prefer" ? 1 : 2
+        })
     }
 },
 persist: {
@@ -603,7 +869,13 @@ persist: {
     storage: localStorage,
     serializer: {
         serialize: (state) => {
-            const { cards, ...rest } = state;
+            const {
+                cards,
+                history,
+                historyIndex,
+                currentlyBuildingTimetable,
+                ...rest
+            } = state;
             return JSON.stringify(rest);
         },
         deserialize: (value) => JSON.parse(value)
