@@ -8,6 +8,7 @@ const darkSaturation = 0.4;
 const darkLightness = 0.3;
 const lightSaturation = 0.8;
 const lightLightness = 0.85;
+const FETCH_CACHE_EXPIRY = 3 * 60 * 1000; // Expire in 3 mins (in ms)
 
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -288,12 +289,18 @@ actions: {
         const sessionData = this.lockedSections[this.selectedSession];
         const courseData = this.selectedCourses[this.selectedSession][course];
         const lockedActivities = Array.isArray(sessionData[course]) ? sessionData[course] : [];
+        const activityType = activity.slice(0, 3).toUpperCase();
 
         if (lock) {
-            if (!lockedActivities.includes(activity)) {
+            const nextLockedActivities = [
+                ...lockedActivities.filter((lockedActivity) => lockedActivity.slice(0, 3).toUpperCase() !== activityType),
+                activity
+            ];
+
+            if (JSON.stringify(nextLockedActivities) !== JSON.stringify(lockedActivities)) {
                 this.lockedSections[this.selectedSession] = {
                     ...sessionData,
-                    [course]: [...lockedActivities, activity]
+                    [course]: nextLockedActivities
                 };
             }
         } else {
@@ -314,11 +321,11 @@ actions: {
         }
 
         const manager = await getViaBuilderManager();
-        manager.removeCourse(course, activity.substring(0, 4).toUpperCase()); // LEC TUT or PRA
+        manager.removeCourse(course, activityType); // LEC TUT or PRA
         await this.addCourseToBuilder(courseData.courseData);
     },
 
-    async addCourse(course, lec, tut, pra, courseData) {
+    async addCourse(course, lec, tut, pra, courseData, shouldGenerate = true) {
         for (const sessionCode of courseData.sessions) {
             const session = this.subsessionCodeToSession(sessionCode);
             this.selectedCourses[session][course] = {
@@ -331,7 +338,9 @@ actions: {
         }
 
         await this.addCourseToBuilder(courseData);
-        this.generateTimetable();
+        if (shouldGenerate) {
+            this.generateTimetable();
+        }
     },
 
     async addCourseToBuilder(courseData) {
@@ -364,7 +373,7 @@ actions: {
             courseJSON["campus"] = courseData["campus"];
             courseJSON["sections"] = [];
         }
-        
+
         const sessionsToSemester = {};
         const match = this.selectedSessionGroup?.match(/-(\d+)-(\d+)/);
         if (match) {
@@ -378,6 +387,7 @@ actions: {
 
         for (const sectionData of courseData["sections"]) {
             const sectionJSON = {};
+
             sectionJSON["name"] = sectionData["name"];
             sectionJSON["meetingTimes"] = [];
 
@@ -396,38 +406,37 @@ actions: {
                 hasMeetingTime = true;
             }
 
-            if (!hasMeetingTime) continue; 
+            if (!hasMeetingTime) continue;
 
-            const normalizedType = String(sectionData["type"] || '').toLowerCase();
             const sectionName = String(sectionData["name"] || '').toUpperCase();
-
-            if (normalizedType.includes('lecture') || sectionName.startsWith('LEC')) {
+            if (sectionName.startsWith('LEC')) {
                 if (lockedSectionsByType.LEC && sectionName !== String(lockedSectionsByType.LEC).toUpperCase()) continue;
                 lecturesJSON["sections"].push(sectionJSON);
-            } else if (normalizedType.includes('tutorial') || sectionName.startsWith('TUT')) {
+            } else if (sectionName.startsWith('TUT')) {
                 if (lockedSectionsByType.TUT && sectionName !== String(lockedSectionsByType.TUT).toUpperCase()) continue;
                 tutorialsJSON["sections"].push(sectionJSON);
-            } else if (normalizedType.includes('practical') || sectionName.startsWith('PRA')) {
+            } else if (sectionName.startsWith('PRA')) {
                 if (lockedSectionsByType.PRA && sectionName !== String(lockedSectionsByType.PRA).toUpperCase()) continue;
                 practicalsJSON["sections"].push(sectionJSON);
             }
         }
 
+        manager.removeCourse(lecturesJSON["code"], "LEC");
         if (lecturesJSON["sections"].length > 0) {
             lecturesJSON["type"] = "LEC";
-            manager.removeCourse(lecturesJSON["code"], "LEC");
+
             manager.addCourse(lecturesJSON);
         }
 
+        manager.removeCourse(tutorialsJSON["code"], "TUT");
         if (tutorialsJSON["sections"].length > 0) {
             tutorialsJSON["type"] = "TUT";
-            manager.removeCourse(tutorialsJSON["code"], "TUT");
             manager.addCourse(tutorialsJSON);
         }
 
+        manager.removeCourse(practicalsJSON["code"], "PRA");
         if (practicalsJSON["sections"].length > 0) {
             practicalsJSON["type"] = "PRA";
-            manager.removeCourse(practicalsJSON["code"], "PRA");
             manager.addCourse(practicalsJSON);
         }
     },
@@ -463,12 +472,15 @@ actions: {
         const manager = await getViaBuilderManager();
         const timetable = manager.build();
         this.applyBuiltTimetable(timetable);
-        this.saveStateHistory();
         this.currentlyBuildingTimetable = false;
     },
 
     applyBuiltTimetable(timetable) {
-        if (!timetable || Object.keys(timetable).length === 0) {
+        const hasBuildFailure = timetable.some((entry) => {
+            return entry["code"] !== blockedTimesCourseCodePlaceholder && entry["section"] === '';
+        });
+
+        if (hasBuildFailure) {
             this.noTimetablePopup = true;
             return;
         }
@@ -571,6 +583,9 @@ actions: {
             lockedSections: JSON.parse(JSON.stringify(this.lockedSections))
         };
 
+        const lastHistory = this.history[this.historyIndex];
+        if (JSON.stringify(newHistory) === JSON.stringify(lastHistory)) return;
+
         this.history.push(newHistory);
         this.historyIndex++;
 
@@ -641,7 +656,7 @@ actions: {
         if (card) {
             card.visible = visible;
         } else {
-            console.log(`No card for ${course} ${sectionCode} was found`);
+            console.log(`No card for ${course} was found`);
         }
     },
 
@@ -650,7 +665,7 @@ actions: {
             try {
                 const newDivisionalLegends = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/divisionalLegends`);
                 this.divisionalLegends = {
-                    expiry: Date.now() + (1 * 3600000), // Expires in 1 day
+                    expiry: Date.now() + FETCH_CACHE_EXPIRY, // Expires in 3 minutes
                     data: newDivisionalLegends
                 };
             } catch (error) {
@@ -667,7 +682,7 @@ actions: {
             try {
                 const newDivisionalEnrolmentIndicators = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/divisionalEnrolmentIndicators`);
                 this.divisionalEnrolmentIndicators = {
-                    expiry: Date.now() + (1 * 3600000), // Expires in 1 day
+                    expiry: Date.now() + FETCH_CACHE_EXPIRY, // Expires in 3 minutes
                     data: newDivisionalEnrolmentIndicators
                 };
             } catch (error) {
@@ -684,7 +699,7 @@ actions: {
             try {
                 const newDivisions = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/referenceData`);
                 this.divisions = {
-                    expiry: Date.now() + (1 * 3600000), // Expires in 1 day
+                    expiry: Date.now() + FETCH_CACHE_EXPIRY, // Expires in 3 minutes
                     data: newDivisions.data.divisions,
                 };
             } catch (error) {
@@ -701,7 +716,7 @@ actions: {
             try {
                 const newSessions = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/referenceData`);
                 this.sessions = {
-                    expiry: Date.now() + (1 * 3600000), // Expires in 1 day
+                    expiry: Date.now() + FETCH_CACHE_EXPIRY, // Expires in 3 minutes
                     data: newSessions.data.sessions
                 };
             } catch (error) {
@@ -749,30 +764,40 @@ actions: {
         }
     },
 
-    timetableModifyActivity(courseData, newActivityName) {
-        if (!Object.keys(this.selectedCourses[this.selectedSession]).includes(courseData.code)) {
-            this.addCourse(courseData.code, null, null, null, courseData);
-        }
-
+    async timetableModifyActivity(courseData, newActivityName, lockAndGenerate = false) {
         const activityMatch = newActivityName.match(/^[^\d]+/);
         const activityType = activityMatch ? activityMatch[0] : null;
 
+        if (!activityType) {
+            return;
+        }
+
+        const courseExists = ['F', 'S'].some((session) => Object.prototype.hasOwnProperty.call(this.selectedCourses[session], courseData.code));
+        if (!courseExists) await this.addCourse(courseData.code, null, null, null, courseData, false);
+
+        for (const session of ['F', 'S']) {
+            const selectedCourse = this.selectedCourses[session][courseData.code];
+            if (!selectedCourse) continue;
+
+            if (activityType === 'LEC') selectedCourse.lec = newActivityName;
+            else if (activityType === 'TUT') selectedCourse.tut = newActivityName;
+            else if (activityType === 'PRA') selectedCourse.pra = newActivityName;
+        }
+
         // Remove current activity type from timetable
-        if (activityType) {
+        for (const session of ['F', 'S']) {
+            if (!this.selectedCourses[session][courseData.code]) continue;
+
             for (const day of days) {
-                this.timetables[this.selectedSession][day] = this.timetables[this.selectedSession][day].filter((event) => {
+                this.timetables[session][day] = this.timetables[session][day].filter((event) => {
                     // Skip non-matching courses early
-                    if (event.course !== courseData.code) {
-                        return true;
-                    }
+                    if (event.course !== courseData.code) return true;
 
                     // Check if the activity type matches
                     const eventMatch = event.activity.match(/^[^\d]+/);
 
-                    if (eventMatch) {
-                        // Exclude if the types match
-                        return eventMatch[0] !== activityType
-                    }
+                    // Exclude if the types match
+                    if (eventMatch) return eventMatch[0] !== activityType
 
                     return true;
                 });
@@ -781,6 +806,11 @@ actions: {
 
         // Add new activity
         this.timetableRegisterActivity(courseData, newActivityName);
+
+        if (lockAndGenerate) {
+            await this.setLockedSectionStatus(courseData.code, newActivityName, true);
+            await this.generateTimetable();
+        }
     },
 
     subsessionCodeToSession(subsessionCode) {

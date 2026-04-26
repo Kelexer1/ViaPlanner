@@ -1,5 +1,5 @@
 <template>
-  <div class="w-lg">
+  <div class="w-3 md:w-4">
     <AutoComplete
       ref="searchBarComponent"
       @complete="populateRecommendations()"
@@ -11,12 +11,26 @@
       :suggestions="allCourses"
       loader="pi pi-spinner"
       :loading="loading"
-      :placeholder="!loading ? 'Search courses...' : 'Loading...'"
+      :placeholder="!loading ? (isSmallDevice ? 'Search...' : 'Search courses...') : ('Loading...')"
       :inputStyle="{
         'background-color': dynamicColor,
         'border': 'none',
-        'border-radius': '4px',
+        'border-radius': '16px',
         'color': dynamicTextColor
+      }"
+      :pt="{
+        panel: {
+          style: isSmallDevice
+            ? { width: 'calc(100vw - 1rem)', maxWidth: 'calc(100vw - 1rem)' }
+            : { maxWidth: '42rem' }
+        },
+        option: {
+          style: {
+            whiteSpace: 'normal',
+            overflowWrap: 'anywhere',
+            wordBreak: 'break-word'
+          }
+        }
       }"
       @minLength="5"
       fluid
@@ -28,6 +42,7 @@
 import { ref, computed } from 'vue';
 import axios from 'axios';
 import { useTimetableStore } from '../../store/timetable';
+import { useWindowSize } from '../../composables/useWindowSize';
 
 const store = useTimetableStore();
 
@@ -36,6 +51,7 @@ const allCourses = ref([]);
 const loading = ref(false);
 const isActive = ref(false);
 const currentQuery = ref(null);
+const { isSmallDevice } = useWindowSize();
 
 const dynamicTextColor = computed(() => {
   return store.darkMode ? '#ffffff' : '#222222';

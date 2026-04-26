@@ -1,29 +1,17 @@
 <template>
   <div
-    @mouseenter="hovered = true"
-    @mouseleave="hovered = false"
-    class="h-full"
+    class="h-full cursor-pointer select-none"
+    @click="toggleHourLock()"
   >
-    <h2 class="hourLabel font-semibold">{{ time }}</h2>
+    <h2 class="mr-[10px] text-[12px] md:text-[16px] font-semibold">{{ time }}</h2>
     <div
-      v-if="last && (hovered || locked)"
+      v-if="last && locked"
       class="mt-2 flex flex-row items-center justify-center"
-      v-tooltip.right="{
-        'value': 'Block All Times'
-      }"
+      v-tooltip.right="tooltip(lockTooltipText)"
     >
       <Button
-        v-if="locked"
-        @click="unlockHour()"
+        @click.stop="toggleHourLock()"
         icon="pi pi-lock"
-        rounded
-        text
-        iconClass="text-text-primary"
-      />
-      <Button
-        v-else
-        @click="lockHour()"
-        icon="pi pi-lock-open"
         rounded
         text
         iconClass="text-text-primary"
@@ -33,12 +21,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { useTimetableStore } from '../../store/timetable';
+import { useResponsiveTooltip } from '../../composables/useResponsiveTooltip';
 
 const store = useTimetableStore();
+const { tooltip } = useResponsiveTooltip();
 
-const hovered = ref(false);
+const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const props = defineProps({
   time: {
@@ -61,24 +51,24 @@ const intTime = computed(() => {
   return hour + ((timeSplit[1] === 'PM' && hour !== 12) ? 12 : 0);
 });
 
-const locked = ref(false);
+const locked = computed(() => {
+  const blockedTimesForSemester = store.blockedTimes[props.semester] || [];
 
-async function lockHour() {
-  await store.setLockedHourStatus(intTime.value, true);
-  store.saveStateHistory();
-  locked.value = true;
-}
+  return days.every((day) => (
+    blockedTimesForSemester.some((blocker) => (
+      blocker.day === day &&
+      blocker.start === intTime.value * 3600 &&
+      blocker.end === (intTime.value * 3600) + 3600
+    ))
+  ));
+});
 
-async function unlockHour() {
-  await store.setLockedHourStatus(intTime.value, false);
+const lockTooltipText = computed(() => {
+  return locked.value ? 'Unblock All Times' : 'Block All Times';
+});
+
+async function toggleHourLock() {
+  await store.setLockedHourStatus(intTime.value, !locked.value);
   store.saveStateHistory();
-  locked.value = false;
 }
 </script>
-
-<style scoped>
-.hourLabel {
-  margin-right: 10px;
-  font-size: 16px;
-}
-</style>

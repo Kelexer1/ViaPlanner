@@ -3,8 +3,8 @@
     <div
       class="heroSection flex flex-col items-center text-white"
     >
-      <h1 class="font-bold md:text-8xl lg:text-8xl py-8 text-6xl">VIAplanner</h1>
-      <h2 class="font-medium text-3xl pb-3 px-8">University of Toronto course planning made easier</h2>
+      <h1 class="font-bold md:text-8xl lg:text-8xl pt-8 pb-6 text-6xl">VIAplanner</h1>
+      <h2 class="font-medium text-3xl pb-3 px-4 md:px-8">University of Toronto course planning made easier</h2>
       <Button
         label="Start Building"
         @click="$router.push('/timetable')"
@@ -15,19 +15,10 @@
       />
       <div class="flex flex-col md:flex-row w-3/4 mb-2 justify-center items-center gap-x-8 gap-y-8 sm:w-1/2">
         <Button
-          label="User Survey"
-          rounded
-          class="w-5"
-        />
-        <Button
           label="GitHub"
           rounded
-          class="w-5"
-        />
-        <Button
-          label="Documentation"
-          rounded
-          class="w-5"
+          class="w-5 max-w-40"
+          @click="openGitHub"
         />
       </div>
       <div>
@@ -36,10 +27,11 @@
           <span>{{ starCount }}</span>
         </h3>
       </div>
-      <div class="w-1/2 justify-center my-8 text-center">
-        <h2 class="font-medium mb-1 text-xl
-        ">About Us</h2>
-        <p class="text-lg">
+      <div class="w-[92%] sm:w-5/6 md:w-3/4 lg:w-1/2 max-w-3xl justify-center mb-8 text-center backdrop-blur-lg p-4 rounded-2xl">
+        <h2 class="font-medium mb-1 text-xl">
+          About Us
+        </h2>
+        <p class="text-lg px-2 sm:px-0">
           VIAplanner is a tool designed by students at the University of Toronto to help the community.
           We desire to enhance the course selection process. Currently, course selection is a tedious, manual
           process that can take days to perfect. With VIAplanner, we are modernizing the course
@@ -61,16 +53,17 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useTimetableStore } from '../store/timetable';
 import axios from 'axios';
-
-const store = useTimetableStore();
 
 const starCount = ref(0)
 
 onMounted(async () => {
   await fetchStarCount();
 })
+
+function openGitHub() {
+  window.open('https://github.com/VIAplanner', '_blank', 'noopener,noreferrer');
+}
 
 async function fetchStarCount() {
   await axios

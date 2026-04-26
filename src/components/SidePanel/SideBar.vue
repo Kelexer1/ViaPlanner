@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4 mt-3 bg-timetablecell transition-colors duration-1000 rounded-md rounded-r-none shadow-md relative">
+  <div :class="sideBarRootClasses">
     <h1 class="text-xl font-bold mr-4">{{ sideBarTitle }}</h1>
     <p class="text-lg font-medium">{{ Object.keys(store.selectedCourses[store.selectedSession]).length * 0.5 }} credits</p>
     <hr class="mb-3" />
@@ -11,7 +11,7 @@
     >
     <div
       class="flex flex-row justify-center items-start"
-      :style="{ 'height' : `${coursePanelHeight * 0.85}px`, 'z-index' : -1 }"
+      :style="{ 'height' : `${coursePanelHeight}px`, 'z-index' : -1 }"
     >
       <div class="flex flex-col w-full">
         <SelectedCourseCard
@@ -31,8 +31,17 @@ import { useTimetableStore } from '../../store/timetable';
 import fallBackground from '../../assets/fall-background.png';
 import winterBackground from '../../assets/winter-background.png';
 import SelectedCourseCard from './SelectedCourseCard.vue';
+import { useWindowSize } from '../../composables/useWindowSize';
 
 const store = useTimetableStore();
+const { height } = useWindowSize();
+
+const props = defineProps({
+  fullscreen: {
+    type: Boolean,
+    default: false
+  }
+});
 
 const sideBarTitle = ref('Loading Sessions...');
 
@@ -54,7 +63,19 @@ watch(() => store.selectedSessionGroup, updateSideBarTitle);
 watch(() => store.selectedSession, updateSideBarTitle);
 
 const coursePanelHeight = computed(() => {
-  return (window.innerHeight - 99) * 0.6;
+  if (props.fullscreen) {
+    return Math.max(height.value - 170, 240);
+  }
+
+  return (height.value - 99) * 0.6;
+});
+
+const sideBarRootClasses = computed(() => {
+  if (props.fullscreen) {
+    return 'p-4 bg-timetablecell transition-colors duration-1000 shadow-md relative h-full overflow-y-auto rounded-none mt-0';
+  }
+
+  return 'p-4 mt-3 bg-timetablecell transition-colors duration-1000 rounded-md rounded-r-none shadow-md relative';
 });
 
 const imgSrc = computed(() => {
@@ -67,6 +88,8 @@ const imgSrc = computed(() => {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css?family=Montserrat&display=swap');
+
 .right-scroll-area {
   position: relative;
   height: 90% !important;
@@ -75,7 +98,6 @@ const imgSrc = computed(() => {
   padding-right: 10px;
 }
 
-@import url('https://fonts.googleapis.com/css?family=Montserrat&display=swap');
 * {
   font-family: 'Montserrat', sans-serif;
 }

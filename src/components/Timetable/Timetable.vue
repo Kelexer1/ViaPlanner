@@ -1,13 +1,12 @@
 <template>
   <div class="flex flex-row h-full">
     <NoTimetablePopup/>
-    <ShareLinkPopup/>
-    <div class="time-axis flex flex-col mt-4 ml-1 mr-0">
+    <div class="time-axis flex flex-col mt-4 ml-0 md:ml-1 mr-0">
       <div class="top-margin" />
       <div
         v-for="(time, index) in timeRange"
         :key="index"
-        class="time-axis-number"
+        class="time-axis-number w-[3.25rem] md:w-[4rem]"
         :style="{ height: oneHourHeight }"
       >
         <HourSwitch
@@ -21,11 +20,12 @@
       <!-- Weekday Axis -->
       <div class="grid" name="weekDaysAxis">
         <div
-          v-for="weekday in weekdays" :key="weekday"
+          v-for="(weekday, index) in weekdays" :key="weekday"
           class="col"
         >
           <WeekdaySwitch
             :weekday="weekday"
+            :weekdayLabel="useShortWeekdays ? weekdaysShort[index] : weekday"
             :semester="semester"
             class="pb-[20px]"
           />
@@ -98,15 +98,16 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useTimetableStore } from '../../store/timetable';
 import TimetableEvent from './TimetableEvent.vue';
 import NoTimetablePopup from '../Popup/NoTimetablePopup.vue';
-import ShareLinkPopup from '../Popup/ShareLinkPopup.vue';
 import HourSwitch from './HourSwitch.vue';
 import WeekdaySwitch from './WeekdaySwitch.vue';
+import { useWindowSize } from '../../composables/useWindowSize';
 
 const store = useTimetableStore();
+const { width, height, isSmallDevice } = useWindowSize();
 
 const props = defineProps({
   timetable: {
@@ -119,12 +120,9 @@ const props = defineProps({
   }
 });
 
-const height = ref(window.innerHeight);
-window.addEventListener('resize', () => {
-  height.value = window.innerHeight;
-});
-
 const weekdays = ref(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']);
+const weekdaysShort = ref(['M', 'T', 'W', 'T', 'F', 'S', 'S'])
+const useShortWeekdays = computed(() => isSmallDevice.value);
 
 const timetableStart = computed(() => {
   let earliest = 9;
@@ -327,7 +325,6 @@ function getEventsForDay(meetingSections) {
 
 .time-axis-number {
   text-align: right;
-  width: 4rem;
 }
 .top-margin {
   margin-bottom: 25px;

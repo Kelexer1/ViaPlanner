@@ -8,13 +8,9 @@
     >
       <h2 class="text-lg font-bold my-2">Warning</h2>
       <p>
-        We are unable to generate one or more timetables based on your current course selection. There will likely be one or more conflicts in the resulting timetable.
+        We are unable to generate timetables for one or more semesters based on your current course selection. There will likely be one or more conflicts in the resulting timetables.
       </p>
       <div class="flex justify-between mt-6">
-        <Button
-          @Click="visible = false"
-          label="Abort"
-        />
         <Button
           @click="visible = false"
           label="Proceed"
@@ -25,7 +21,18 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
+import { useTimetableStore } from '../../store/timetable';
 
-const visible = ref(false);
+const store = useTimetableStore();
+
+const visible = ref(store.noTimetablePopup ?? false);
+
+watch(visible, (val) => {
+  if (store.noTimetablePopup !== val) store.noTimetablePopup = val;
+});
+
+watch(() => store.noTimetablePopup, (val) => {
+  if (visible.value !== val) visible.value = val;
+});
 </script>

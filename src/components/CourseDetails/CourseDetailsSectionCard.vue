@@ -1,7 +1,7 @@
 <template>
     <div class="bg-coursecard-background rounded-md p-3">
-        <div class="flex flex-row justify-between">
-            <div class="flex flex-row gap-x-5">
+        <div class="flex flex-col gap-3 lg:flex-row lg:justify-between">
+            <div class="flex flex-row gap-x-5 items-start">
                 <RadioButton
                     v-model="sectionType.field"
                     :inputId="section.name"
@@ -16,18 +16,14 @@
                     <span
                         v-else
                         class="text-yellow-500"
-                        v-tooltip.bottom="{
-                            value: `Conflicts with ${sectionConflicts.join(', ')}`
-                        }"
+                        v-tooltip.bottom="tooltip(`Conflicts with ${sectionConflicts.join(', ')}`)"
                     >
                         {{ section.name }}
                     </span>
                     <span> ({{ getSectionDeliveryType(section.meetingTimes) }}) </span>
                     <span
                         v-if="section.openLimitInd === 'C'"
-                        v-tooltip.bottom="{
-                            value: 'You may not be able to enrol in this section on Acorn at this time',
-                        }"
+                        v-tooltip.bottom="tooltip('You may not be able to enrol in this section on Acorn at this time')"
                         class="text-yellow-500"
                     >
                         (Unavailable)
@@ -39,17 +35,17 @@
                 :href="`https://metis.utm.utoronto.ca/CourseInfo/syllabus_display.php?course=${courseData.code}/${courseData.sectionCode}/${section.name}/${section.deliveryModes[0].session}`"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-text-secondary">
+                class="text-text-secondary self-start lg:self-auto">
                 <u>View Syllabus</u>
             </a>
         </div>
-        <div class="flex flex-row">
-            <div class="w-1/2 p-4 bg-timetablesettings-background rounded-md ml-0 mr-3 mt-2">
+        <div class="flex flex-col gap-4 lg:flex-row">
+            <div class="w-full lg:w-1/2 p-4 bg-timetablesettings-background rounded-md mt-2 lg:mr-3">
                 <CourseTimetable
                     :dateTimes="parseMeetingTimes(section.meetingTimes)"
                 />
             </div>
-            <div class="w-1/2">
+            <div class="w-full lg:w-1/2">
                 <!-- Instructors -->
                 <p>
                     <span class="font-medium">Instructors: </span>
@@ -68,15 +64,13 @@
                     <span class="font-medium">Waitlist: </span>
                     <span
                         :class="getWaitlistHighlight(section.currentWaitlist / section.maxEnrolment)"
-                        v-tooltip.right="{
-                            value: 'You are likely to get past the waitlist if your position is within 10% of the class size',
-                        }"
+                        v-tooltip.right="tooltip('You are likely to get past the waitlist if your position is within 10% of the class size')"
                     >
                         {{ section.currentWaitlist }}
                     </span>
                 </p>
                 <!-- Enrolment Indicators -->
-                <div class="flex flex-col">
+                <div class="flex flex-col gap-1">
                     <div
                         v-if="section.enrolmentInd"
                         class="flex flex-row items-center gap-x-3"
@@ -89,10 +83,20 @@
                             :highlights="[section.enrolmentInd]"
                         />
                     </div>
-                    <div>
+                    <button
+                        v-if="section.enrolmentControls && section.enrolmentControls.length"
+                        type="button"
+                        class="self-start text-text-secondary no-underline underline-offset-2 hover:underline"
+                        @click="showEnrolmentControls = !showEnrolmentControls"
+                        :aria-expanded="showEnrolmentControls"
+                    >
+                        {{ showEnrolmentControls ? 'Hide enrolment controls' : 'Show enrolment controls' }}
+                    </button>
+                    <div v-if="showEnrolmentControls">
                         <ul class="list-disc pl-2">
                             <li
                                 v-for="control in section.enrolmentControls"
+                                :key="control"
                             >
                                 {{ control }}
                             </li>
@@ -113,12 +117,15 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useTimetableStore } from '../../store/timetable';
 import EnrolmentLegendPopup from './EnrolmentLegendPopup.vue';
 import CourseTimetable from './CourseTimetable.vue';
+import { useResponsiveTooltip } from '../../composables/useResponsiveTooltip';
 
 const store = useTimetableStore();
+const { tooltip } = useResponsiveTooltip();
+const showEnrolmentControls = ref(false);
 
 const props = defineProps({
     sectionType: {

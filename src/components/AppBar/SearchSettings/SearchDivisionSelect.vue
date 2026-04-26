@@ -1,9 +1,7 @@
 <template>
     <div>
         <div>
-            <h2
-                class="font-bold text-lg"
-            >
+            <h2 class="font-bold text-lg">
                 Select Divisions
             </h2>
             <div
@@ -17,9 +15,7 @@
                     name="division"
                     :value="division.value"
                 />
-                <label
-                    :for="division.value"
-                >
+                <label :for="division.value">
                     {{ division.label }}
                 </label>
             </div>

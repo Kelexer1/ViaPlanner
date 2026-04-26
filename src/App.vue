@@ -2,6 +2,7 @@
   <div id="app">
     <router-view />
     <CourseDetailCardsLayer/>
+    <Toast/>
   </div>
 </template>
 

@@ -1,12 +1,12 @@
 <template>
-  <div class="flex flex-row items-center shadow-md w-full bg-white mb-2">
+  <div class="filter shadow-md shadow-shadow flex flex-row items-center w-full bg-timetablecell mb-2 rounded-md">
     <div
-      class="rounded-l-md w-1 h-10 mr-2"
+      class="rounded-l-md w-1 h-10 mr-2 shrink-0"
       :style="{
         backgroundColor: course.color,
       }"
     />
-    <div class="rounded-r-md flex flex-row items-center justify-between w-full">
+    <div class="flex flex-row items-center justify-between w-full">
       <h2>{{ course.courseData.code }}</h2>
       <div class="flex flex-row">
         <Button
@@ -46,6 +46,7 @@ function editSection() {
 
 function deleteCourse() {
   store.removeCourse(props.course.courseData.code);
+  store.saveStateHistory();
 }
 </script>
 

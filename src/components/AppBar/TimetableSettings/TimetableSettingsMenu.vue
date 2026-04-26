@@ -8,6 +8,12 @@
           :pt:root:class="'w-[26rem]'"
           :pt:header:class="'text-text-secondary'"
         >
+          <div
+            v-show="isSmallDevice"
+            class="w-[100%] flex flex-row justify-center items-center gap-2"
+          >
+            <BuildTimetableButton/>
+          </div>
           <TextDivider text="Time Settings"/>
           <PrefferedTimeSettingsGroup />
           <TextDivider text="Gap Settings"/>
@@ -18,9 +24,7 @@
         <Button
           icon="pi pi-cog"
           rounded
-          v-tooltip.bottom="{
-            value: 'Timetable Settings'
-          }"
+          v-tooltip.bottom="tooltip('Timetable Settings')"
           @click="visible = true"
           :pt:icon:class="'text-white'"
         />
@@ -29,12 +33,15 @@
 
 <script setup>
 import TextDivider from '../../Misc/TextDivider.vue';
-
 import PrefferedTimeSettingsGroup from './PrefferedTimeSettingsGroup.vue';
 import PrefferedGapSettingsGroup from './PrefferedGapSettingsGroup.vue';
 import MiscSettingsGroup from './MiscSettingsGroup.vue';
-
+import BuildTimetableButton from '../BuildTimetableButton.vue';
+import { useWindowSize } from '../../../composables/useWindowSize';
+import { useResponsiveTooltip } from '../../../composables/useResponsiveTooltip';
 import { ref } from 'vue';
 
+const { isSmallDevice } = useWindowSize();
+const { tooltip } = useResponsiveTooltip();
 const visible = ref(false);
 </script>

@@ -10,8 +10,8 @@
     v-model:visible="open"
     modal
     :showHeader="true"
-    :style="{ width: '50rem', padding: '1rem' }"
-    :draggable="true"
+    class="p-0 md:p-[1rem] w-[100vw] lg:w-75vw max-w-50rem"
+    :draggable="false"
     :header="`${ division } Enrolment Legend`"
 >
     <div class="flex flex-col items-end">

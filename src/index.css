@@ -10,6 +10,7 @@
   --color-text-secondary: #00204e;
   --color-active: #25477a;
   --color-subtle-background: #eeeeee;
+  --color-shadow: #c9c9c9;
 
   --color-primary-50: #e5f0ff;
   --color-primary-100: #cce1ff;
@@ -54,6 +55,7 @@
   --color-text-primary: white;
   --color-text-secondary: var(--color-primary-400);
   --color-subtle-background: #18181b;
+  --color-shadow: #373737;
 
   --color-primary: var(--color-primary-500);
   --color-primary-inverse: #001533;
@@ -71,13 +73,13 @@
   --color-divisional-highlight: rgb(100, 100, 0);
 }
 
-body {
+/* body {
   @apply bg-background transition-colors duration-1000;
 }
 
 .timetablecell {
   @apply transition-colors duration-1000;
-}
+} */
 
 .dark body {
   @apply bg-primary-950 text-white;

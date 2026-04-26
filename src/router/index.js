@@ -31,7 +31,7 @@ const routes = [
   {
     path: '/test',
     name: 'test',
-    component: () => import('@/components/AppBar/TimetableSettings/ProfileSelector.vue')
+    component: () => import('@/components/AppBar/SessionSelect.vue')
   },
   {
     path: '/:catchAll(.*)',

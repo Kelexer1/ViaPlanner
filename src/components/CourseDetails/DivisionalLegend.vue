@@ -11,7 +11,7 @@
         v-model:visible="visible"
         modal
         :showHeader="true"
-        :style="{ padding: '1rem' }"
+        :style="{ maxWidth: '100vw', padding: '1rem' }"
         :header="`${division} Divisional Legend`"
     >
         <div v-html="content" class="divisionalLegendPopup"></div>

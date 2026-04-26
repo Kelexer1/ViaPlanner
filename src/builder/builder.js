@@ -5,10 +5,6 @@ import viaBuilderScriptUrl from './via-builder.js?url';
 import viaBuilderWasmUrl from './via-builder.wasm?url';
 
 async function ensureViaBuilderScriptLoaded() {
-    if (typeof window.createViaBuilderModule === 'function') {
-        return;
-    }
-
     await new Promise((resolve, reject) => {
         const existing = document.querySelector('script[data-via-builder="true"]');
 
@@ -26,10 +22,6 @@ async function ensureViaBuilderScriptLoaded() {
         script.onerror = () => reject(new Error('Failed to load via-builder.js'));
         document.head.appendChild(script);
     });
-
-    if (typeof window.createViaBuilderModule !== 'function') {
-        throw new Error('via-builder module factory was not found on window after script load');
-    }
 }
 
 async function getModule() {
@@ -50,6 +42,9 @@ async function getModule() {
     return modulePromise;
 }
 
+/**
+ * Check out https://github.com/Kelexer1/via-builder for documentation on how to use these methods, and JSON formatting
+ */
 class ViaBuilderManager {
     constructor(Module) {
         this.Module = Module;

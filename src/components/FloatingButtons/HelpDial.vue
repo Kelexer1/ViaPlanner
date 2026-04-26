@@ -5,7 +5,6 @@
       rounded
       icon="pi pi-bars"
       :pt:icon:class="'text-white'"
-      class="m-4"
     />
     <Popover
       ref="popover"
@@ -20,6 +19,9 @@
         <AboutButton
           class="py-1"
         />
+        <ExportCalendarButton
+          class="py-1"
+        />
       </div>
     </Popover>
   </div>
@@ -29,6 +31,7 @@
 import { ref } from 'vue';
 import AboutButton from './AboutButton.vue';
 import TutorialButton from './TutorialButton.vue';
+import ExportCalendarButton from './ExportCalendarButton.vue';
 
 const popover = ref(null);
 

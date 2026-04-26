@@ -1,17 +1,13 @@
 <template>
     <div>
-        <h2
-            class="font-bold text-lg"
-        >
+        <h2 class="font-bold text-lg">
             Select Sessions
         </h2>
         <div
             v-for="sessionGroup of sessionGroups"
             :key="sessionGroup.group"
         >
-            <div
-                class="gap-2 flex items-center"
-            >
+            <div class="gap-2 flex items-center">
                 <RadioButton
                     @change="handleSessionGroupChangeRequest(sessionGroup)"
                     :inputId="sessionGroup.group"
@@ -60,7 +56,12 @@ const pendingSessionGroup = ref(null);
 
 function handleSessionGroupChangeRequest(sessionGroup) {
     pendingSessionGroup.value = sessionGroup;
-    confirmDialogVisible.value = true;
+
+    if ((Object.keys(store.selectedCourses['F']).length > 0) || (Object.keys(store.selectedCourses['S']).length > 0)) {
+        confirmDialogVisible.value = true;
+    } else {
+        confirmChange();
+    }
 }
 
 function cancelChange() {

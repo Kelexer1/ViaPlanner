@@ -3,30 +3,18 @@
     class="flex flex-row items-center justify-center"
   >
     <div
-      @mouseenter="hovered = true"
-      @mouseleave="hovered = false"
-      class="flex flex-row justify-center items-center mt-4 mx-0 relative w-full"
+      class="flex flex-row justify-center items-center mt-4 mx-0 relative w-full cursor-pointer select-none"
+      @click="toggleDayLock()"
     >
-      <h3 class="day-label mb-0 mx-0 font-bold">{{ weekday }}</h3>
+      <h3 class="day-label mb-0 mx-0 font-bold text-sm md:text-md lg:text-lg">{{ weekdayLabel || weekday }}</h3>
       <div
-        v-if="hovered || locked"
+        v-if="locked"
         class="absolute -bottom-6"
-        v-tooltip.bottom="{
-          value: toolTipText
-        }"
+        v-tooltip.bottom="tooltip(toolTipText)"
       >
         <Button
-          v-if="locked"
-          @click="unlockDay"
+          @click.stop="toggleDayLock()"
           icon="pi pi-lock"
-          rounded
-          text
-          iconClass="text-text-primary"
-        />
-        <Button
-          v-else
-          @click="lockDay"
-          icon="pi pi-lock-open"
           rounded
           text
           iconClass="text-text-primary"
@@ -37,17 +25,21 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useTimetableStore } from '../../store/timetable';
+import { useResponsiveTooltip } from '../../composables/useResponsiveTooltip';
 
 const store = useTimetableStore();
-
-const hovered = ref(false);
+const { tooltip } = useResponsiveTooltip();
 
 const props = defineProps({
   weekday: {
     type: String,
     required: true
+  },
+  weekdayLabel: {
+    type: String,
+    default: null
   },
   semester: {
     type: String,
@@ -55,22 +47,29 @@ const props = defineProps({
   }
 });
 
-const locked = ref(false);
+const locked = computed(() => {
+  const blockedTimesForSemester = store.blockedTimes[props.semester] || [];
+  const dayBlocks = blockedTimesForSemester.filter((blocker) => blocker.day === props.weekday);
 
-const toolTipText = computed(() => {
-  return locked ? 'Block All Times' : 'Unblock All Times';
+  for (let hour = 8; hour <= 22; hour++) {
+    const start = hour * 3600;
+    const end = start + 3600;
+
+    if (!dayBlocks.some((blocker) => blocker.start === start && blocker.end === end)) {
+      return false;
+    }
+  }
+
+  return true;
 });
 
-async function lockDay() {
-  await store.setLockedDayStatus(props.weekday, true);
-  store.saveStateHistory();
-  locked.value = true;
-}
+const toolTipText = computed(() => {
+  return locked.value ? 'Unblock All Times' : 'Block All Times';
+});
 
-async function unlockDay() {
-  await store.setLockedDayStatus(props.weekday, false);
+async function toggleDayLock() {
+  await store.setLockedDayStatus(props.weekday, !locked.value);
   store.saveStateHistory();
-  locked.value = false;
 }
 </script>
 

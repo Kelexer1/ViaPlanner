@@ -29,9 +29,7 @@
       @click="getLink()"
       icon="pi pi-share-alt"
       rounded
-      v-tooltip.bottom="{
-        value: 'Share timetable',
-      }"
+      v-tooltip.bottom="tooltip('Share timetable')"
     />
   </div>
 </template>
@@ -40,8 +38,15 @@
 <script>
 /* eslint-disable no-console */
 import { mapGetters, mapMutations } from 'vuex';
+import { useResponsiveTooltip } from '../../composables/useResponsiveTooltip';
 
 export default {
+  setup() {
+    const { tooltip } = useResponsiveTooltip();
+    return {
+      tooltip
+    };
+  },
   data() {
     return {
       hovered: true,

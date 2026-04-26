@@ -1,6 +1,6 @@
 <template>
   <div
-    class="noScrollbar w-full wrap-break-word overflow-y-auto"
+    class="noScrollbar w-full overflow-y-auto"
     :style="{
       'height': duration * oneHourHeight
     }"
@@ -8,34 +8,38 @@
     <!-- Non-empty event -->
     <div
       v-if="!isEmpty"
-      class="h-full text-white p-1 text-sm"
-      @mouseenter="hovered = true"
-      @mouseleave="hovered = false"
+      class="h-full text-white p-1 text-sm cursor-pointer"
+      @mouseenter="setHovered(true)"
+      @mouseleave="setHovered(false)"
+      @click="handleEventClick()"
     >
       <div
         class="flex flex-row justify-between"
       >
         <h3 class="font-bold relative">{{ eventData.course }}</h3>
-        <div class="absolute right-0">
+        <div
+          v-if="!isSmallDevice"
+          class="absolute right-0"
+        >
           <Button
             v-if="sectionLocked"
             rounded
             text
             icon="pi pi-lock"
-            @click="blockSectionToggle()"
+            @click.stop="blockSectionToggle()"
             iconClass="text-white"
           />
           <Button
-            v-else-if="hovered"
+            v-else-if="hovered || isSmallDevice"
             rounded
             text
             icon="pi pi-lock-open"
-            @click="blockSectionToggle()"
+            @click.stop="blockSectionToggle()"
             iconClass="text-white"
           />
         </div>
       </div>
-      <p>{{ eventData.activity }} ({{ activityData.building.buildingCode ? activityData.building.buildingCode : 'Online' }})</p>
+      <p :class="{ 'text-red-300': sectionLocked }">{{ eventData.activity }} ({{ activityData.building.buildingCode ? activityData.building.buildingCode : 'Online' }})</p>
       <p>{{ parseTime(eventData.start) }} - {{ parseTime(eventData.end) }}</p>
     </div>
     <!-- Empty event -->
@@ -43,8 +47,8 @@
       v-else-if="eventData.start % 3600 === 0 && eventData.end % 3600 === 0"
       :class="['event', 'h-full', dynamicColor]"
       :style="{ 'height': getHeight }"
-      @mouseover="hovered = true"
-      @mouseleave="hovered = false"
+      @mouseover="setHovered(true)"
+      @mouseleave="setHovered(false)"
     >
       <div
         v-show="hovered"
@@ -64,15 +68,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useTimetableStore } from '../../store/timetable';
+import { useWindowSize } from '../../composables/useWindowSize';
 
 const store = useTimetableStore();
+const { isSmallDevice, height } = useWindowSize();
 
 const hovered = ref(false);
-
-const height = ref(window.innerHeight);
-window.addEventListener('resize', () => height.value = window.innerHeight);
 
 const props = defineProps({
   eventData: {
@@ -109,11 +112,11 @@ const duration = computed(() => {
 });
 
 const oneHourHeight = computed(() => {
-  return (height - 168) / 9 > 65 ? (height - 168) / 9 : 65;
+  return (height.value - 168) / 9 > 65 ? (height.value - 168) / 9 : 65;
 });
 
 const getHeight = computed(() => {
-  return `${duration * oneHourHeight}px`;
+  return `${duration.value * oneHourHeight.value}px`;
 });
 
 const dynamicText = computed(() => {
@@ -128,7 +131,7 @@ const dynamicColor = computed(() => {
     return lockedColor;
   }
 
-  return hovered.value ? lockedColor : background;
+  return hovered.value && !isSmallDevice.value ? lockedColor : background;
 });
 
 const sectionLocked = computed(() => {
@@ -156,6 +159,28 @@ async function blockTimeToggle() {
   store.saveStateHistory();
 }
 
+function getCourseSectionCode(courseCode) {
+  const selectedCourse = store.selectedCourses[store.selectedSession]?.[courseCode] ||
+    store.selectedCourses.F?.[courseCode] ||
+    store.selectedCourses.S?.[courseCode];
+
+  return selectedCourse?.courseData?.sectionCode || store.selectedSession;
+}
+
+function openDetailCard() {
+  const sectionCode = getCourseSectionCode(props.eventData.course);
+  store.setDetailCardVisibility(`${props.eventData.course} ${sectionCode}`, true);
+}
+
+async function handleEventClick() {
+  if (isSmallDevice.value) {
+    await blockSectionToggle();
+    return;
+  }
+
+  openDetailCard();
+}
+
 function parseTime(seconds) {
   const totalMins = Math.floor(seconds / 60);
   const hours = Math.floor(totalMins / 60);
@@ -168,6 +193,15 @@ function parseTime(seconds) {
   const extension = hours < 12 ? 'AM' : 'PM';
 
   return `${hours % 12 === 0 ? 12 : hours % 12}${mins} ${extension}`;
+}
+
+function setHovered(value) {
+  if (isSmallDevice.value) {
+    hovered.value = false;
+    return;
+  }
+
+  hovered.value = value;
 }
 </script>
 

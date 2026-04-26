@@ -5,7 +5,7 @@
       v-model:visible="visible"
       modal
       header="Welcome to VIAplanner!"
-      :style="{ 'width': 'auto', 'max-width': '1200px' }"
+      :style="{ 'width': 'auto', 'max-width': 'min(1200px, 100vw)' }"
     >
       <Carousel
         :value="tutorialSteps"
