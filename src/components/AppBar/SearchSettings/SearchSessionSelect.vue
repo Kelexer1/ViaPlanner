@@ -3,65 +3,46 @@
         <h2 class="font-bold text-lg">
             Select Sessions
         </h2>
-        <div
-            v-for="sessionGroup of sessionGroups"
-            :key="sessionGroup.group"
-        >
+        <div v-for="sessionGroup of sessionGroups" :key="sessionGroup.group">
             <div class="gap-2 flex items-center">
-                <RadioButton
-                    @change="handleSessionGroupChangeRequest(sessionGroup)"
-                    :inputId="sessionGroup.group"
-                    :value="sessionGroup.group"
-                    name="sessionGroup"
-                    :modelValue="selectedSessionGroup"
-                />
+                <RadioButton @change="handleSessionGroupChangeRequest(sessionGroup)" :inputId="sessionGroup.group"
+                    :value="sessionGroup.group" name="sessionGroup" :modelValue="selectedSessionGroup" />
                 <label :for="sessionGroup.group">{{ sessionGroup.label }}</label>
             </div>
-            <div
-                v-for="subsession of sessionGroup.subsessions"
-                :key="subsession.value"
-                class="pl-4 gap-2 flex items-center"
-            >
-                <Checkbox
-                    v-model="selectedSubsessions"
-                    :inputId="subsession.value"
-                    :value="subsession.value"
-                    name="subsession"
-                    :disabled="sessionGroup.group !== selectedSessionGroup"
-                />
+            <div v-for="subsession of sessionGroup.subsessions" :key="subsession.value"
+                class="pl-4 gap-2 flex items-center">
+                <Checkbox v-model="selectedSubsessions" :inputId="subsession.value" :value="subsession.value"
+                    name="subsession" :disabled="sessionGroup.group !== selectedSessionGroup" />
                 <label :for="subsession.value">{{ subsession.label }}</label>
             </div>
         </div>
     </div>
-    <ChangeSessionGroup
-        v-model:visible="confirmDialogVisible"
-        @cancel="cancelChange"
-        @continue="confirmChange"
-    />
+    <ChangeSessionGroup v-model:visible="confirmDialogVisible" @cancel="cancelChange" @continue="confirmChange" />
 </template>
 
-<script setup>
-import { ref, watchEffect, watch } from 'vue';
+<script setup lang="ts">
+import { ref, watchEffect, watch, Ref } from 'vue';
 import { useTimetableStore } from '../../../store/timetable';
 import ChangeSessionGroup from '../../Popup/ChangeSessionGroup.vue';
+import { FIRST_SEM, SECOND_SEM, SessionData } from '../../../store/timetable.shared';
 
-const store = useTimetableStore();
+const store = useTimetableStore() as any;
 
 const selectedSessionGroup = ref(store.selectedSessionGroup);
 const selectedSubsessions = ref(Array.isArray(store.selectedSubsessions) ? [...store.selectedSubsessions] : []);
 
-const sessionGroups = ref([]);
-const confirmDialogVisible = ref(false);
-const pendingSessionGroup = ref(null);
+const sessionGroups: Ref<Array<SessionData>> = ref([]);
+const confirmDialogVisible: Ref<boolean> = ref(false);
+const pendingSessionGroup: Ref<SessionData | null> = ref(null);
 
-function handleSessionGroupChangeRequest(sessionGroup) {
+function handleSessionGroupChangeRequest(sessionGroup: SessionData) {
     pendingSessionGroup.value = sessionGroup;
 
-    if ((Object.keys(store.selectedCourses['F']).length > 0) || (Object.keys(store.selectedCourses['S']).length > 0)) {
-        confirmDialogVisible.value = true;
-    } else {
-        confirmChange();
-    }
+    if (
+        Object.keys(store.selectedCourses[FIRST_SEM]).length > 0 ||
+        Object.keys(store.selectedCourses[SECOND_SEM]).length > 0
+    ) confirmDialogVisible.value = true;
+    else confirmChange();
 }
 
 function cancelChange() {
@@ -74,9 +55,8 @@ function confirmChange() {
         selectedSessionGroup.value = pendingSessionGroup.value.group;
         store.selectedSessionGroup = pendingSessionGroup.value.group;
 
-        if (pendingSessionGroup.value.subsessions) {
+        if (pendingSessionGroup.value.subsessions)
             selectedSubsessions.value = pendingSessionGroup.value.subsessions.map(subsession => subsession.value);
-        }
     }
 
     confirmDialogVisible.value = false;
@@ -84,22 +64,16 @@ function confirmChange() {
     store.resetTimetable();
 }
 
-watch(() => store.selectedSessionGroup, (val) => {
-    if (val !== selectedSessionGroup.value) {
-        selectedSessionGroup.value = val;
-    }
+watch(() => store.selectedSessionGroup, (val: string) => {
+    if (val !== selectedSessionGroup.value) selectedSessionGroup.value = val;
 });
 
-watch(selectedSubsessions, (val) => {
-    if (JSON.stringify(val) !== JSON.stringify(store.selectedSubsessions)) {
-        store.selectedSubsessions = val;
-    }
+watch(selectedSubsessions, (val: Array<string>) => {
+    if (JSON.stringify(val) !== JSON.stringify(store.selectedSubsessions)) store.selectedSubsessions = val;
 });
 
-watch(() => store.selectedSubsessions, (val) => {
-    if (JSON.stringify(val) !== JSON.stringify(selectedSubsessions.value)) {
-        selectedSubsessions.value = [...val || []];
-    }
+watch(() => store.selectedSubsessions, (val: Array<string>) => {
+    if (JSON.stringify(val) !== JSON.stringify(selectedSubsessions.value)) selectedSubsessions.value = [...val || []];
 });
 
 watchEffect(async () => {

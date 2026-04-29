@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import Components from 'unplugin-vue-components/vite'
 import { PrimeVueResolver } from '@primevue/auto-import-resolver'
 import tailwindcss from '@tailwindcss/vite'
+import checker from 'vite-plugin-checker'
 
 import path from 'path'
 
@@ -14,7 +15,8 @@ export default defineConfig({
             resolvers: [
                 PrimeVueResolver()
             ]
-        })
+        }),
+        checker({ vueTsc: true })
     ],
     resolve: {
         alias: [

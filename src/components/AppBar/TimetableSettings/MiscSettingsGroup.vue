@@ -1,8 +1,8 @@
 <template>
     <div class="flex flex-row flex-wrap items-center justify-between">
-        <OnlinePreferenceSelect/>
-        <IncludeUnavailableSwitch/>
-        <AvoidRushHourSwitch/>
+        <OnlinePreferenceSelect />
+        <IncludeUnavailableSwitch />
+        <AvoidRushHourSwitch />
     </div>
 </template>
 

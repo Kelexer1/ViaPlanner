@@ -1,38 +1,25 @@
 <template>
     <div class="m-2">
         <label for="maxDayLengthInput" class="block mb-0 text-sm font-bold">Max Day Length</label>
-        <InputNumber
-            v-model="maxDayLength"
-            suffix=" Hours"
-            :min="1"
-            :max="12"
-            showButtons
-            buttonLayout="stacked"
-            inputClass="MaxDayLengthInput"
-            placeholder="3 Hours"
-            :pt:pcInputText:root:id="'maxDayLengthInput'"
-        />
+        <InputNumber v-model="maxDayLength" suffix=" Hours" :min="1" :max="12" showButtons buttonLayout="stacked"
+            inputClass="MaxDayLengthInput" placeholder="3 Hours" :pt:pcInputText:root:id="'maxDayLengthInput'" />
     </div>
 </template>
 
-<script setup>
-import { ref, watch } from 'vue';
+<script setup lang="ts">
+import { ref, Ref, watch } from 'vue';
 import { useTimetableStore } from '../../../store/timetable';
 
-const store = useTimetableStore();
+const store = useTimetableStore() as any;
 
-const maxDayLength = ref(store.maxDayLength ?? 3);
+const maxDayLength: Ref<number> = ref(store.maxDayLength ?? 3);
 
-watch(maxDayLength, (val) => {
-    if (val !== store.maxDayLength) {
-        store.maxDayLength = val;
-    }
+watch(maxDayLength, (val: number) => {
+    if (val !== store.maxDayLength) store.maxDayLength = val;
 });
 
-watch(() => store.maxDayLength, (val) => {
-    if (val !== maxDayLength.value) {
-        maxDayLength.value = val;
-    }
+watch(() => store.maxDayLength, (val: number) => {
+    if (val !== maxDayLength.value) maxDayLength.value = val;
 });
 </script>
 

@@ -1,27 +1,21 @@
 <template>
   <div class="scroll-area">
-    {{ selectedCourses }}
-    <SelectedCourseCard
-      v-for="(course, code) in filterCourses(store.selectedCourses[store.selectedSession])"
-      :key="code"
-      :course="course"
-    />
+    <SelectedCourseCard v-for="(course, code) in filterCourses(store.selectedCourses[store.selectedSession])"
+      :key="code" :course="course" />
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useTimetableStore } from '../../store/timetable';
 import SelectedCourseCard from './SelectedCourseCard.vue';
 
-const store = useTimetableStore();
+const store = useTimetableStore() as any;
 
-function filterCourses(selectedCourses) {
-  const filteredCourses = {};
+function filterCourses(selectedCourses: Array<any>) {
+  const filteredCourses: Record<string, any> = {};
 
   for (const code in selectedCourses) {
-    if (!code.includes('Lock')) {
-      filteredCourses[code] = selectedCourses[code];
-    }
+    if (!code.includes('Lock')) filteredCourses[code] = selectedCourses[code];
   }
 
   return filteredCourses;

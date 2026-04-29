@@ -6,7 +6,9 @@
                 <Column field="time" header="Time" style="width: 75%" />
                 <Column field="location" header="Location" style="width: 25%">
                     <template #body="slotProps">
-                        <a v-if="slotProps.data.locationURL" :href="`${slotProps.data.locationURL}`" target="_blank" rel="noopener noreferrer" class="text-text-secondary break-words"><u>{{ slotProps.data.location }}</u></a>
+                        <a v-if="slotProps.data.locationURL" :href="`${slotProps.data.locationURL}`" target="_blank"
+                            rel="noopener noreferrer" class="text-text-secondary break-words"><u>{{
+                                slotProps.data.location }}</u></a>
                         <span v-else class="break-words">{{ slotProps.data.location }}</span>
                     </template>
                 </Column>
@@ -18,7 +20,9 @@
                 <Column field="time" header="Time" style="width: 75%" />
                 <Column field="location" header="Location" style="width: 25%">
                     <template #body="slotProps">
-                        <a v-if="slotProps.data.locationURL" :href="`${slotProps.data.locationURL}`" target="_blank" rel="noopener noreferrer" class="text-text-secondary break-words"><u>{{ slotProps.data.location }}</u></a>
+                        <a v-if="slotProps.data.locationURL" :href="`${slotProps.data.locationURL}`" target="_blank"
+                            rel="noopener noreferrer" class="text-text-secondary break-words"><u>{{
+                                slotProps.data.location }}</u></a>
                         <span v-else class="break-words">{{ slotProps.data.location }}</span>
                     </template>
                 </Column>
@@ -27,7 +31,7 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const props = defineProps({
     dateTimes: {
         type: Object,

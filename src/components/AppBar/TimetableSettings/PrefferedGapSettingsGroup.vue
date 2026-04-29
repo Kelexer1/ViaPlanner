@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-col items-start justify-between">
-        <MaxHoursInput/>
-        <MaxGapInput/>
+        <MaxHoursInput />
+        <MaxGapInput />
     </div>
 </template>
 

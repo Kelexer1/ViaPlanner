@@ -1,39 +1,29 @@
 <template>
   <div :class="sideBarRootClasses">
     <h1 class="text-xl font-bold mr-4">{{ sideBarTitle }}</h1>
-    <p class="text-lg font-medium">{{ Object.keys(store.selectedCourses[store.selectedSession]).length * 0.5 }} credits</p>
+    <p class="text-lg font-medium">{{ Object.keys(store.selectedCourses[store.selectedSession]).length * 0.5 }} credits
+    </p>
     <hr class="mb-3" />
-    <img
-      :src="imgSrc"
-      class="absolute z-0"
-      width="100%"
-      style="left: 50%; top: 50%; transform: translate(-50%, -50%);"
-    >
-    <div
-      class="flex flex-row justify-center items-start"
-      :style="{ 'height' : `${coursePanelHeight}px`, 'z-index' : -1 }"
-    >
+    <img :src="imgSrc" class="absolute z-0" width="100%" style="left: 50%; top: 50%; transform: translate(-50%, -50%);">
+    <div class="flex flex-row justify-center items-start"
+      :style="{ 'height': `${coursePanelHeight}px`, 'z-index': -1 }">
       <div class="flex flex-col w-full">
-        <SelectedCourseCard
-          v-for="(course, code) in store.selectedCourses[store.selectedSession]"
-          :key="code"
-          :course="course"
-          class="z-1"
-        />
+        <SelectedCourseCard v-for="(course, code) in store.selectedCourses[store.selectedSession]" :key="code"
+          :course="course" class="z-1" />
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, watch} from 'vue';
+<script setup lang="ts">
+import { ref, Ref, computed, onMounted, watch } from 'vue';
 import { useTimetableStore } from '../../store/timetable';
 import fallBackground from '../../assets/fall-background.png';
 import winterBackground from '../../assets/winter-background.png';
 import SelectedCourseCard from './SelectedCourseCard.vue';
 import { useWindowSize } from '../../composables/useWindowSize';
 
-const store = useTimetableStore();
+const store = useTimetableStore() as any;
 const { height } = useWindowSize();
 
 const props = defineProps({
@@ -43,15 +33,15 @@ const props = defineProps({
   }
 });
 
-const sideBarTitle = ref('Loading Sessions...');
+const sideBarTitle: Ref<string> = ref('Loading Sessions...');
 
 async function updateSideBarTitle() {
   const sessions = await store.getSessions();
-  const sessionGroup = sessions.find(sessionGroup => sessionGroup.group === store.selectedSessionGroup);
+  const sessionGroup = sessions.find((sessionGroup: any) => sessionGroup.group === store.selectedSessionGroup);
 
   if (sessionGroup) {
     const sessionKey = ` (${store.selectedSession})`;
-    const subsession = sessionGroup.subsessions.find(subsession => subsession.label.includes(sessionKey));
+    const subsession = sessionGroup.subsessions.find((subsession: any) => subsession.label.includes(sessionKey));
     sideBarTitle.value = subsession ? subsession.label.replace(sessionKey, '') : 'Loading Sessions...';
   } else {
     sideBarTitle.value = 'Loading Sessions...';
@@ -63,27 +53,18 @@ watch(() => store.selectedSessionGroup, updateSideBarTitle);
 watch(() => store.selectedSession, updateSideBarTitle);
 
 const coursePanelHeight = computed(() => {
-  if (props.fullscreen) {
-    return Math.max(height.value - 170, 240);
-  }
-
-  return (height.value - 99) * 0.6;
+  if (props.fullscreen) return Math.max(height.value - 170, 240);
+  else return (height.value - 99) * 0.6;
 });
 
 const sideBarRootClasses = computed(() => {
-  if (props.fullscreen) {
-    return 'p-4 bg-timetablecell transition-colors duration-1000 shadow-md relative h-full overflow-y-auto rounded-none mt-0';
-  }
-
-  return 'p-4 mt-3 bg-timetablecell transition-colors duration-1000 rounded-md rounded-r-none shadow-md relative';
+  if (props.fullscreen) return 'p-4 bg-timetablecell shadow-md relative h-full overflow-y-auto rounded-none mt-0';
+  else return 'p-4 mt-3 bg-timetablecell rounded-md rounded-r-none shadow-md relative';
 });
 
 const imgSrc = computed(() => {
-  if (store.selectedSession === 'F') {
-    return fallBackground;
-  }
-
-  return winterBackground;
+  if (store.selectedSession === 'F') return fallBackground;
+  else return winterBackground;
 })
 </script>
 

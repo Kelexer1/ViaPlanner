@@ -1,38 +1,25 @@
 <template>
     <div class="m-2">
         <label for="maxHoursInput" class="block mb-0 text-sm font-bold">Max Continuous Classes</label>
-        <InputNumber
-            v-model="maxHours"
-            suffix=" Hours"
-            :min="1"
-            :max="12"
-            showButtons
-            buttonLayout="stacked"
-            inputClass="MaxHoursInput"
-            placeholder="3 Hours"
-            :pt:pcInputText:root:id="'maxHoursInput'"
-        />
+        <InputNumber v-model="maxHours" suffix=" Hours" :min="1" :max="12" showButtons buttonLayout="stacked"
+            inputClass="MaxHoursInput" placeholder="3 Hours" :pt:pcInputText:root:id="'maxHoursInput'" />
     </div>
 </template>
 
-<script setup>
-import { ref, watch } from 'vue';
+<script setup lang="ts">
+import { ref, Ref, watch } from 'vue';
 import { useTimetableStore } from '../../../store/timetable';
 
-const store = useTimetableStore();
+const store = useTimetableStore() as any;
 
-const maxHours = ref(store.maxHours ?? 3);
+const maxHours: Ref<number> = ref(store.maxHours ?? 3);
 
-watch(maxHours, (val) => {
-    if (val !== store.maxHours) {
-        store.maxHours = val;
-    }
+watch(maxHours, (val: number) => {
+    if (val !== store.maxHours) store.maxHours = val;
 });
 
-watch(() => store.maxHours, (val) => {
-    if (val !== maxHours.value) {
-        maxHours.value = val;
-    }
+watch(() => store.maxHours, (val: number) => {
+    if (val !== maxHours.value) maxHours.value = val;
 });
 </script>
 

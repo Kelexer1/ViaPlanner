@@ -1,20 +1,11 @@
 <template>
   <div>
-    <Dialog
-      @close="dialogClosed"
-      v-model:visible="visible"
-      modal
-      header="Welcome to VIAplanner!"
-      :style="{ 'width': 'auto', 'max-width': 'min(1200px, 100vw)' }"
-    >
-      <Carousel
-        :value="tutorialSteps"
-        :numVisible="1"
-        :numScroll="1"
-      >
+    <Dialog @close="dialogClosed" v-model:visible="visible" modal header="Welcome to VIAplanner!"
+      :style="{ 'width': 'auto', 'max-width': 'min(1200px, 100vw)' }">
+      <Carousel :value="tutorialSteps" :numVisible="1" :numScroll="1">
         <template #item="slotProps">
           <div>
-            <h2 class="text-lg font-bold">{{ slotProps.data.step }}: {{ slotProps.data.title}}</h2>
+            <h2 class="text-lg font-bold">{{ slotProps.data.step }}: {{ slotProps.data.title }}</h2>
             <p>{{ slotProps.data.description }}</p>
             <div class="mb-4">
               <img :src="slotProps.data.path" class="object-contain w-full max-h-[60vh] m-4">
@@ -26,10 +17,11 @@
   </div>
 </template>
 
-<script setup>
-import { ref, watch } from 'vue';
+<script setup lang="ts">
+import { ref, Ref, watch } from 'vue';
 import { useTimetableStore } from '../../store/timetable';
 
+// @ts-ignore
 import genColor from 'color-generator';
 
 import tut1 from '../../assets/tut1.gif';
@@ -39,20 +31,16 @@ import tut4 from '../../assets/tut4.gif';
 import tut5 from '../../assets/tut5.gif';
 import tut6 from '../../assets/tut6.gif';
 
-const store = useTimetableStore();
+const store = useTimetableStore() as any;
 
-const visible = ref(store.tutorialPopup);
+const visible: Ref<boolean> = ref(store.tutorialPopup);
 
-watch(() => store.tutorialPopup, (val) => {
-  if (val !== visible.value) {
-    visible.value = val;
-  }
+watch(() => store.tutorialPopup, (val: boolean) => {
+  if (val !== visible.value) visible.value = val;
 });
 
-watch(visible, (val) => {
-  if (store.tutorialPopup !== val) {
-    store.tutorialPopup = val;
-  }
+watch(visible, (val: boolean) => {
+  if (store.tutorialPopup !== val) store.tutorialPopup = val;
 });
 
 const tutorialSteps = [

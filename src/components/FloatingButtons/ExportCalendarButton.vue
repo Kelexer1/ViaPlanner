@@ -1,59 +1,45 @@
 <template>
   <div>
-    <Button
-      @click="exportTimetables()"
-      rounded
-      icon="pi pi-download"
-      v-tooltip.left="tooltip('Export Timetables')"
-    />
+    <Button @click="exportTimetables()" rounded icon="pi pi-download" v-tooltip.left="tooltip('Export Timetables')" />
 
-    <div
-      v-if="exportSemester"
-      aria-hidden="true"
-      class="export-template-stage"
-    >
-      <ExportTimetableTemplate
-        :semester="exportSemester"
-        :timetable="store.timetables[exportSemester]"
-        :title="exportTitle"
-      />
+    <div v-if="exportSemester" aria-hidden="true" class="export-template-stage">
+      <ExportTimetableTemplate :semester="exportSemester" :timetable="store.timetables[exportSemester]"
+        :title="exportTitle" />
     </div>
   </div>
 </template>
 
-<script setup>
-import { nextTick, ref } from 'vue';
+<script setup lang="ts">
+import { nextTick, ref, Ref } from 'vue';
 import html2canvas from 'html2canvas';
 import { useTimetableStore } from '../../store/timetable';
 import ExportTimetableTemplate from './ExportTimetableTemplate.vue';
 import { useResponsiveTooltip } from '../../composables/useResponsiveTooltip';
 
-const store = useTimetableStore();
+const store = useTimetableStore() as any;
 const { tooltip } = useResponsiveTooltip();
-const exportSemester = ref(null);
-const exportTitle = ref('');
+const exportSemester: Ref<string | null> = ref(null);
+const exportTitle: Ref<string> = ref('');
 
-function getSemesterTitle(sessions, semester) {
-  const sessionGroup = sessions.find((group) => group.group === store.selectedSessionGroup);
+function getSemesterTitle(sessions: Array<any>, semester: string): string {
+  const sessionGroup = sessions.find((group: any) => group.group === store.selectedSessionGroup);
 
-  if (!sessionGroup) {
-    return "";
-  }
+  if (!sessionGroup) return "";
 
   const sessionKey = ` (${semester})`;
-  const subsession = sessionGroup.subsessions.find((entry) => entry.label.includes(sessionKey));
+  const subsession = sessionGroup.subsessions.find((entry: any) => entry.label.includes(sessionKey));
 
-  return subsession ? subsession.label.replace(sessionKey, '') : getFallbackTitle(semester);
+  return subsession ? subsession.label.replace(sessionKey, '') : "";
 }
 
-function downloadCanvas(canvas, filename) {
+function downloadCanvas(canvas: any, filename: string) {
   const link = document.createElement('a');
   link.href = canvas.toDataURL('image/png');
   link.download = filename;
   link.click();
 }
 
-async function captureSemester(semester, title) {
+async function captureSemester(semester: string, title: string) {
   store.selectedSession = semester;
   exportSemester.value = semester;
   exportTitle.value = title;
@@ -65,9 +51,7 @@ async function captureSemester(semester, title) {
   const elementId = `exportTemplate-${semester}`;
   const timetableElement = document.getElementById(elementId);
 
-  if (!timetableElement) {
-    return;
-  }
+  if (!timetableElement) return;
 
   const canvas = await html2canvas(timetableElement, {
     backgroundColor: '#ffffff',
@@ -83,9 +67,7 @@ async function exportTimetables() {
   const originalSession = store.selectedSession;
   const semestersToExport = ['F', 'S'].filter((semester) => Object.keys(store.selectedCourses[semester] || {}).length > 0);
 
-  if (!semestersToExport.length) {
-    return;
-  }
+  if (!semestersToExport.length) return;
 
   try {
     const sessions = await store.getSessions();

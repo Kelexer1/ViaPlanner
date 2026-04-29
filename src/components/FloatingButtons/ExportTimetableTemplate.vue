@@ -1,21 +1,12 @@
 <template>
-  <div
-    :id="`exportTemplate-${semester}`"
-    class="export-template"
-  >
+  <div :id="`exportTemplate-${semester}`" class="export-template">
     <div class="export-template__header">
-      <img
-        src="../../assets/VIA-Planner-Blue.png"
-        class="max-w-[130px] h-[60px] m-2 mr-0"
-      >
+      <img src="../../assets/VIA-Planner-Blue.png" class="max-w-[130px] h-[60px] m-2 mr-0">
       <p class="export-template__subtitle ml-2">{{ title }} Timetable</p>
     </div>
 
     <div class="export-template__content">
-      <Timetable
-        :timetable="timetable"
-        :semester="semester"
-      />
+      <Timetable :timetable="timetable" :semester="semester" />
     </div>
 
     <div class="export-template__footer">
@@ -26,7 +17,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Timetable from '../Timetable/Timetable.vue';
 
 defineProps({

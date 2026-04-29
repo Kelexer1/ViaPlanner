@@ -1,37 +1,22 @@
 <template>
     <div>
-        <Dialog
-            v-model:visible="visible"
+        <Dialog v-model:visible="visible"
             class="w-[calc(100vw-1rem)] h-[calc(100dvh-4rem)] my-4 lg:w-[70vw] lg:h-[60vh] lg:my-0 overflow-hidden"
-            :style="{ 'max-height': 'calc(100dvh - 4rem)' }"
-            :draggable="false"
-            @update:visible="handleVisibleUpdate"
-        >
+            :style="{ 'max-height': 'calc(100dvh - 4rem)' }" :draggable="false" @update:visible="handleVisibleUpdate">
             <!-- Header -->
             <template #header>
                 <div class="flex flex-col gap-3 w-full items-start lg:flex-row lg:justify-between lg:items-center">
                     <h2 class="text-xl lg:text-2xl font-bold leading-tight break-words">
                         {{ `${courseData.code} ${courseData.sectionCode} - ${courseData.name}` }}
                     </h2>
-                    <Button
-                        @click="addCourse()"
-                        icon="pi pi-plus"
-                        label="Quick Add Course"
-                        class="hidden lg:inline-flex lg:mr-3"
-                        :pt:icon:class="'text-white'"
-                        :pt:label:class="'text-white'"
-                    />
+                    <Button @click="addCourse()" icon="pi pi-plus" label="Quick Add Course"
+                        class="hidden lg:inline-flex lg:mr-3" :pt:icon:class="'text-white'"
+                        :pt:label:class="'text-white'" />
                 </div>
             </template>
             <div class="flex justify-center mb-4 lg:hidden">
-                <Button
-                    @click="addCourse()"
-                    icon="pi pi-plus"
-                    label="Quick Add Course"
-                    class="w-full max-w-xs"
-                    :pt:icon:class="'text-white'"
-                    :pt:label:class="'text-white'"
-                />
+                <Button @click="addCourse()" icon="pi pi-plus" label="Quick Add Course" class="w-full max-w-xs"
+                    :pt:icon:class="'text-white'" :pt:label:class="'text-white'" />
             </div>
             <div class="flex h-full flex-col gap-4 overflow-y-auto pr-1">
                 <!-- Icon Bar -->
@@ -49,16 +34,16 @@
                     <!-- Distribution Requirement -->
                     <span class="flex items-start gap-2">
                         <i class="pi pi-graduation-cap"></i>
-                        <span class="break-words">{{ courseData.maxCredit }} Credits ({{ parseDistributionRequirements(courseData.breadths) }})</span>
+                        <span class="break-words">{{ courseData.maxCredit }} Credits ({{
+                            parseDistributionRequirements(courseData.breadths) }})</span>
                     </span>
                     <!-- View Legend Button -->
-                    <div v-if="divisionalData && divisionalLegend.content" class="flex w-full justify-center sm:w-auto sm:justify-start">
-                        <DivisionalLegend
-                            :division="`${courseData.faculty.name} (${courseData.faculty.code})`"
-                            :content="divisionalLegend.content"
-                        />
+                    <div v-if="divisionalData && divisionalLegend.content"
+                        class="flex w-full justify-center sm:w-auto sm:justify-start">
+                        <DivisionalLegend :division="`${courseData.faculty.name} (${courseData.faculty.code})`"
+                            :content="divisionalLegend.content" />
                     </div>
-                </div >
+                </div>
 
                 <!-- Info Blocks -->
                 <div class="w-full flex flex-col gap-6 lg:flex-row lg:gap-0">
@@ -68,41 +53,46 @@
                         <p class="break-words">{{ courseData.cmCourseInfo.description }}</p>
                         <h3 class="text-md font-bold mt-3">Department Info</h3>
                         <!-- Department -->
-                        <p class="break-words"><span class="font-medium">Department: </span>{{ courseData.department.name }}</p>
+                        <p class="break-words"><span class="font-medium">Department: </span>{{
+                            courseData.department.name }}</p>
                         <!-- Faculty -->
-                        <p class="break-words"><span class="font-medium">Faculty: </span>{{ courseData.faculty.name }}</p>
+                        <p class="break-words"><span class="font-medium">Faculty: </span>{{ courseData.faculty.name }}
+                        </p>
                     </div>
                     <div class="flex flex-col w-full lg:w-[40%]">
                         <h3 class="text-md font-bold">Requisite Info</h3>
-                        <p v-if="courseData.cmCourseInfo.prerequisitesText" class="break-words"><span class="font-medium">Prerequisites: </span>{{ courseData.cmCourseInfo.prerequisitesText }}</p> <!-- Prerequisites -->
-                        <p v-if="courseData.cmCourseInfo.exclusionsText" class="break-words"><span class="font-medium">Exclusions: </span>{{ courseData.cmCourseInfo.exclusionsText }}</p> <!-- Exclusions -->
-                        <p v-if="courseData.cmCourseInfo.corequisitesText" class="break-words"><span class="font-medium">Corequisites: </span>{{ courseData.cmCourseInfo.corequisitesText }}</p> <!-- Corequisites -->
-                        <p v-if="courseData.cmCourseInfo.recommendedPreparation" class="break-words"><span class="font-medium">Recommended Preparation: </span>{{ courseData.cmCourseInfo.recommendedPreparation }}</p> <!-- Recommended Prep -->
+                        <p v-if="courseData.cmCourseInfo.prerequisitesText" class="break-words"><span
+                                class="font-medium">Prerequisites: </span>{{ courseData.cmCourseInfo.prerequisitesText
+                            }}</p>
+                        <!-- Prerequisites -->
+                        <p v-if="courseData.cmCourseInfo.exclusionsText" class="break-words"><span
+                                class="font-medium">Exclusions:
+                            </span>{{ courseData.cmCourseInfo.exclusionsText }}</p> <!-- Exclusions -->
+                        <p v-if="courseData.cmCourseInfo.corequisitesText" class="break-words"><span
+                                class="font-medium">Corequisites: </span>{{ courseData.cmCourseInfo.corequisitesText }}
+                        </p>
+                        <!-- Corequisites -->
+                        <p v-if="courseData.cmCourseInfo.recommendedPreparation" class="break-words"><span
+                                class="font-medium">Recommended Preparation: </span>{{
+                                    courseData.cmCourseInfo.recommendedPreparation }}</p> <!-- Recommended Prep -->
                     </div>
                 </div>
                 <!-- Section List -->
-                <Accordion
-                    :value="['0']"
-                    :multiple="true"
-                >
+                <Accordion :value="['0']" :multiple="true">
                     <template v-for="type in sectionTypes" :key="type.key">
-                        <AccordionPanel
-                            v-if="courseData.sections.some(section => section.type === type.label)"
-                            :value="type.key"
-                        >
+                        <AccordionPanel v-if="courseData.sections.some((section: any) => section.type === type.label)"
+                            :value="type.key">
                             <AccordionHeader>
                                 <h2 class="text-lg font-bold">{{ type.label }}s</h2>
                             </AccordionHeader>
                             <AccordionContent
-                                v-for="section in courseData.sections.filter(section => section.type === type.label).sort((s1, s2) => parseInt(s1.name.match(/\d+(?!\d)/)) - parseInt(s2.name.match(/\d+(?!\d)/)))"
-                                :key="section.name"
-                            >
-                                <CourseDetailsSectionCard
-                                    :sectionType="type"
-                                    :section="section"
-                                    :courseData="courseData"
-                                    :divisionalData="divisionalData"
-                                />
+                                v-for="section in courseData.sections
+                                    .filter((section: any) => section.type === type.label)
+                                    .sort((s1: any, s2: any) =>
+                                        parseInt(s1.name.match(/\d+(?!\d)/)) - parseInt(s2.name.match(/\d+(?!\d)/)))"
+                                :key="section.name">
+                                <CourseDetailsSectionCard :sectionType="type" :section="section"
+                                    :courseData="courseData" :divisionalData="divisionalData" />
                             </AccordionContent>
                         </AccordionPanel>
                     </template>
@@ -112,31 +102,26 @@
     </div>
 </template>
 
-<script setup>
-import { ref, computed, watch, nextTick, onMounted } from 'vue';
+<script setup lang="ts">
+import { ref, Ref, computed, watch, nextTick, onMounted } from 'vue';
 import { useTimetableStore } from '../../store/timetable';
-import { useToast } from 'primevue';
 import DivisionalLegend from './DivisionalLegend.vue';
 import CourseDetailsSectionCard from './CourseDetailsSectionCard.vue';
+import { FIRST_SEM, SECOND_SEM } from '../../store/timetable.shared';
 
-const store = useTimetableStore();
-const toast = useToast();
+const store = useTimetableStore() as any;
 
-const visible = ref(true);
+const visible: Ref<boolean> = ref(true);
 
-const selectedLec = ref(null);
-const selectedTut = ref(null);
-const selectedPra = ref(null);
-const suppressSelectionWatchers = ref(false);
+const selectedLec: Ref<string | null> = ref(null);
+const selectedTut: Ref<string | null> = ref(null);
+const selectedPra: Ref<string | null> = ref(null);
+const suppressSelectionWatchers: Ref<boolean> = ref(false);
 
-function getSelectedCourseWrapper(courseCode) {
+function getSelectedCourseWrapper(courseCode: string) {
     const selectedSessionCourses = store.selectedCourses[store.selectedSession] || {};
-
-    if (selectedSessionCourses[courseCode]) {
-        return selectedSessionCourses[courseCode];
-    }
-
-    return store.selectedCourses.F?.[courseCode] || store.selectedCourses.S?.[courseCode] || null;
+    if (selectedSessionCourses[courseCode]) return selectedSessionCourses[courseCode];
+    return store.selectedCourses[FIRST_SEM]?.[courseCode] || store.selectedCourses[SECOND_SEM]?.[courseCode] || null;
 }
 
 async function syncSelectedSectionsFromStore() {
@@ -150,19 +135,19 @@ async function syncSelectedSectionsFromStore() {
     suppressSelectionWatchers.value = false;
 }
 
-watch(selectedLec, (val) => {
+watch(selectedLec, (val: string | null) => {
     if (suppressSelectionWatchers.value || !val) return;
     store.timetableModifyActivity(props.courseData, val, true);
     store.saveStateHistory();
 });
 
-watch(selectedTut, (val) => {
+watch(selectedTut, (val: string | null) => {
     if (suppressSelectionWatchers.value || !val) return;
     store.timetableModifyActivity(props.courseData, val, true);
     store.saveStateHistory();
 });
 
-watch(selectedPra, (val) => {
+watch(selectedPra, (val: string | null) => {
     if (suppressSelectionWatchers.value || !val) return;
     store.timetableModifyActivity(props.courseData, val, true);
     store.saveStateHistory();
@@ -186,7 +171,9 @@ const props = defineProps({
 });
 
 const divisionalLegend = computed(() => {
-    return props.divisionalData.divisionalLegends.data.data.find(legend => legend.division === props.courseData.faculty.code);
+    return props?.divisionalData?.divisionalLegends.data.data.find(
+        (legend: any) => legend.division === props.courseData.faculty.code
+    );
 });
 
 onMounted(syncSelectedSectionsFromStore);
@@ -203,9 +190,9 @@ async function addCourse() {
     // Remove any old references to prevent duplicates
     await store.removeCourse(props.courseData.code);
 
-    const lecs = props.courseData.sections.filter((section) => section.type === 'Lecture');
-    const tuts = props.courseData.sections.filter((section) => section.type === 'Tutorial');
-    const pras = props.courseData.sections.filter((section) => section.type === 'Practical');
+    const lecs = props.courseData.sections.filter((section: any) => section.type === 'Lecture');
+    const tuts = props.courseData.sections.filter((section: any) => section.type === 'Tutorial');
+    const pras = props.courseData.sections.filter((section: any) => section.type === 'Practical');
     const lec = lecs.length > 0 ? lecs[0].name : null;
     const tut = tuts.length > 0 ? tuts[0].name : null;
     const pra = pras.length > 0 ? pras[0].name : null;
@@ -221,8 +208,8 @@ async function addCourse() {
     store.saveStateHistory();
 }
 
-function parseSession(sessions) {
-    return sessions.map(session => {
+function parseSession(sessions: Array<string>) {
+    return sessions.map((session: string) => {
         if (session.length < 5) {
             return 'INVALID_DATE';
         }
@@ -236,17 +223,13 @@ function parseSession(sessions) {
     }).join(' - ');
 }
 
-function parseDistributionRequirements(distributionRequirements) {
-    return distributionRequirements.map(distribution => {
+function parseDistributionRequirements(distributionRequirements: any) {
+    return distributionRequirements.map((distribution: any) => {
         return distribution.breadthTypes && distribution.breadthTypes.length ? distribution.breadthTypes[0].type : '';
-    })
-    .filter(requirement => requirement)
-    .join(', ')
+    }).filter((requirement: string) => requirement).join(', ')
 }
 
-const handleVisibleUpdate = (value) => {
-    if (!value) {
-        store.setDetailCardVisibility(`${props.courseData.code} ${props.courseData.sectionCode}`, false);
-    }
+const handleVisibleUpdate = (value: boolean) => {
+    if (!value) store.setDetailCardVisibility(`${props.courseData.code} ${props.courseData.sectionCode}`, false);
 }
 </script>
