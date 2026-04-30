@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router';
 import home from '../views/Home.vue';
 import about from '../views/About.vue';
 import timetable from '../views/Timetable.vue';
-import program from '../views/Program.vue';
 
 const routes = [
   {
@@ -15,23 +14,13 @@ const routes = [
         name: 'timetable',
         path: 'timetable',
         component: timetable,
-      },
-      {
-        name: 'program',
-        path: 'program',
-        component: program,
-      },
+      }
     ],
   },
   {
     path: '/about',
     name: 'about',
     component: about,
-  },
-  {
-    path: '/test',
-    name: 'test',
-    component: () => import('@/components/AppBar/SessionSelect.vue')
   },
   {
     path: '/:catchAll(.*)',

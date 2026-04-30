@@ -1,17 +1,3 @@
-## Notice (Rewrite in progress)
-
-This repository contains ongoing modernization and rewrite efforts of the legacy codebase of ViaPlanner.
-You can find the original repo [here](https://github.com/VIAplanner/via-timetable).
-
-### Status:
-
-- Core frontend functionality completed
-- Core backend functionality completed
-- Final rewrites and additions in progress
-- NOT currently live
-
-This rewrite focuses on long-term maintainability through modern tooling and clean architecture rather than rushed production deployement
-
 <p align="center">
   <a href="https://docs.viaplanner.ca/" target="_blank">
     <img alt="VIAplanner" width="300" src="./VIA-Planner-Blue.png">
@@ -30,33 +16,24 @@ This rewrite focuses on long-term maintainability through modern tooling and cle
 
 # VIAplanner
 
-VIAplanner is a tool designed by students at the University of Toronto to help the community. We desire to enhance the course selection process.
+VIAplanner is a tool designed by students at the University of Toronto to help the community. Our goal is to improve the course selection and scheduling process by providing a suite of tools to browse courses and design personalized timetables on the go.
 
 ## Introduction
 
-The fundamental problem we are trying to solve :
-1. The current process is to choose your courses and manually create a schedule without any conflicts. This can take days to perfect.
-
-2. With the help of this tool, we are making this process faster and easier than before.
-
-3. Furthermore, this will improve UofT's reputation since this tool will modernize a crucial part of a student's life.
+The fundamental problem we are trying to solve:
+1. There is no automated process to create good timetables, instead requiring days of manual effort checking different combinations of courses and timeslots
+2. The official University of Toronto timetable builder is unintuitive and not good for generating optimal timetables, often leaving large gaps and scattering classes across a very large time range
+3. The official University of Toronto timetable builder only provides a single way to customize your timetable, through broad scheduling preferences such as 'Early' or 'Late'
 
 # Documentation
 [VIATimetable Documentation](https://docs.viaplanner.ca)
 
-## Installation Using NPM
+## Installation Using Yarn
 
 ```sh
 git clone https://github.com/VIAplanner/via-timetable.git
 cd via-timetable
 yarn
-yarn serve
+yarn dev
 ```
 
-## Testing
-
-Tests are found in `tests/`
-
-```sh
-yarn run test:unit
-```
