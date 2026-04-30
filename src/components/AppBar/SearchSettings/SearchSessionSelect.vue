@@ -35,6 +35,10 @@ const sessionGroups: Ref<Array<SessionData>> = ref([]);
 const confirmDialogVisible: Ref<boolean> = ref(false);
 const pendingSessionGroup: Ref<SessionData | null> = ref(null);
 
+/**
+ * @brief Switches the session group, prompting the user to confirm if there is courses that will be deleted as a result
+ * @param sessionGroup The session group being changed to
+ */
 function handleSessionGroupChangeRequest(sessionGroup: SessionData) {
     pendingSessionGroup.value = sessionGroup;
 
@@ -45,11 +49,17 @@ function handleSessionGroupChangeRequest(sessionGroup: SessionData) {
     else confirmChange();
 }
 
+/**
+ * @brief Cancels the session change request
+ */
 function cancelChange() {
     confirmDialogVisible.value = false;
     pendingSessionGroup.value = null;
 }
 
+/**
+ * @brief Confirms the session change request, resetting the timetable since the course offerings will change
+ */
 function confirmChange() {
     if (pendingSessionGroup.value) {
         selectedSessionGroup.value = pendingSessionGroup.value.group;

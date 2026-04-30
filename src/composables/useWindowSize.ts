@@ -8,6 +8,9 @@ if (typeof window !== 'undefined') {
   window.addEventListener('resize', updateWindowSize);
 }
 
+/**
+ * @brief Updates the stored height and width of the window
+ */
 function updateWindowSize(): void {
   if (typeof window === 'undefined') return;
 

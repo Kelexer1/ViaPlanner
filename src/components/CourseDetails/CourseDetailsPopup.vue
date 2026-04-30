@@ -118,12 +118,21 @@ const selectedTut: Ref<string | null> = ref(null);
 const selectedPra: Ref<string | null> = ref(null);
 const suppressSelectionWatchers: Ref<boolean> = ref(false);
 
+/**
+ * @brief Fetches the course JSON from the store for a course code
+ * @param courseCode The course code
+ * @returns The course JSON
+ */
 function getSelectedCourseWrapper(courseCode: string) {
     const selectedSessionCourses = store.selectedCourses[store.selectedSession] || {};
     if (selectedSessionCourses[courseCode]) return selectedSessionCourses[courseCode];
     return store.selectedCourses[FIRST_SEM]?.[courseCode] || store.selectedCourses[SECOND_SEM]?.[courseCode] || null;
 }
 
+/**
+ * @brief Initializes the selections of the lecture, tutorial, and practical fields to their current store values
+ * for the course provided in props
+ */
 async function syncSelectedSectionsFromStore() {
     const selectedCourse = getSelectedCourseWrapper(props.courseData.code);
 
@@ -182,6 +191,9 @@ watch(() => props.courseData.code, () => {
     syncSelectedSectionsFromStore();
 }, { immediate: true });
 
+/**
+ * @brief Adds a course to the timetable and closes the detail card
+ */
 async function addCourse() {
     // Close via store visibility so the card unmounts and can be reopened cleanly.
     store.setDetailCardVisibility(`${props.courseData.code} ${props.courseData.sectionCode}`, false);
@@ -208,22 +220,30 @@ async function addCourse() {
     store.saveStateHistory();
 }
 
-function parseSession(sessions: Array<string>) {
+/**
+ * @brief Converts an array of sessions that a course spans into a single readable string
+ * @param sessions The sessions the course spans
+ */
+function parseSession(sessions: Array<string>): string {
     return sessions.map((session: string) => {
-        if (session.length < 5) {
-            return 'INVALID_DATE';
-        }
+        if (session.length < 5) return 'INVALID_DATE';
 
         const year = session.substring(0, 4);
         const month = session.substring(4, 5);
 
-        const sessionName = session.length === 6 ? (session.substring(6) === 'F' ? 'Summer First Subsession' : 'Summer Second Subsession') : (month === '9' ? 'Fall' : 'Winter');
+        const sessionName = session.length === 6 ?
+            (session.substring(6) === FIRST_SEM ? 'Summer First Subsession' : 'Summer Second Subsession') :
+            (month === '9' ? 'Fall' : 'Winter');
 
         return `${year} ${sessionName}`;
     }).join(' - ');
 }
 
-function parseDistributionRequirements(distributionRequirements: any) {
+/**
+ * @brief Converts an array of distribution requirements into a single readable string
+ * @param distributionRequirements The distribution requirements
+ */
+function parseDistributionRequirements(distributionRequirements: Array<string>) {
     return distributionRequirements.map((distribution: any) => {
         return distribution.breadthTypes && distribution.breadthTypes.length ? distribution.breadthTypes[0].type : '';
     }).filter((requirement: string) => requirement).join(', ')

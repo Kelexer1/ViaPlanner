@@ -97,6 +97,7 @@ import { useTimetableStore } from '../../store/timetable';
 import EnrolmentLegendPopup from './EnrolmentLegendPopup.vue';
 import CourseTimetable from './CourseTimetable.vue';
 import { useResponsiveTooltip } from '../../composables/useResponsiveTooltip';
+import { DAYS } from '../../store/timetable.shared';
 
 const store = useTimetableStore() as any;
 const { tooltip } = useResponsiveTooltip();
@@ -131,7 +132,12 @@ const sectionConflicts = computed(() => {
     return conflicts;
 });
 
-function conflictsInSession(sessionCode: string) {
+/**
+ * @brief Returns a list of course activities that conflict with the course given in props
+ * @param sessionCode The session to check conflicts in
+ * @returns A list of course activities that conflict in the format '{ course name } { activity name }'
+ */
+function conflictsInSession(sessionCode: string): Array<string> {
     const conflicts: Array<string> = [];
     const currentMeetingTimes = Object.values(props.section.meetingTimes);
 
@@ -175,6 +181,11 @@ const divisionalEnrolmentIndicator = computed(() => {
     );
 });
 
+/**
+ * @brief Returns whether a course is online, in person, or hybrid based on its timeslots
+ * @param timeslots The timeslots of the course
+ * @return Either 'Online', 'Hybrid', or 'In Person'
+ */
 function getSectionDeliveryType(timeslots: Array<any>): string {
     const regularSlots = timeslots.filter(timeslot => timeslot.building.buildingCode !== 'ZZ');
 
@@ -191,18 +202,39 @@ function getSectionDeliveryType(timeslots: Array<any>): string {
     else return 'In Person';
 }
 
+/**
+ * @brief Returns a HTML class name that will apply a highlight effect for the availability of a course section based on
+ * the ratio of available slots to total slots for the section
+ * @param ratio The ratio of available slots to total slots
+ * @returns Either 'highlightGreen', if there is a lot of room, down to 'highlightYellow' and 'highlightRed' as the
+ * ratio decreases
+ */
 function getAvailabilityHighlight(ratio: number): string {
     if (ratio >= 0.5) return 'highlightGreen';
     else if (ratio > 0) return 'highlightYellow';
     else return 'highlightRed';
 }
 
+/**
+ * @brief Returns a HTML class name that will apply a highlight effect for the waitlist count of a course section based
+ * on the ratio of the current waitlist to the total class size of the section
+ * @param ratio The ratio of the current waitlist size to the total class size of the section
+ * @returns Either 'highlightGreen' if the ratio is low (good) or 'highlightYellow' or 'highlightRed' as the ratio
+ * increases
+ */
 function getWaitlistHighlight(ratio: number): string {
     if (ratio > 0.2) return 'highlightRed';
     else if (ratio > 0.1) return 'highlightYellow';
     else return 'highlightGreen';
 }
 
+/**
+ * @brief Encodes the date and location data for all meeting times of a course in by session, with each meeting time
+ * having ZZ sections last
+ * @param meetingTimes The meeting times of the course
+ * @returns The formatted and ordered meeting time data keyed by 'first' and 'second' for the semester, mapping to a
+ * sorted array of meeting times containing a time, location, and URL to a map showing the location
+ */
 function parseMeetingTimes(meetingTimes: any) {
     let result: Record<string, Array<any>> = {}
 
@@ -236,42 +268,23 @@ function parseMeetingTimes(meetingTimes: any) {
     return formattedResult;
 }
 
-function parseDay(dayInt: number) {
-    switch (dayInt) {
-        case 1:
-            return 'Mon';
-        case 2:
-            return 'Tue';
-        case 3:
-            return 'Wed';
-        case 4:
-            return 'Thu';
-        case 5:
-            return 'Fri';
-        case 6:
-            return 'Sat';
-        default:
-            return 'Sun';
-    }
+/**
+ * @brief Converts a day number into its full name (ex. 1 -> 'Monday')
+ * @param dayInt The day number
+ * @returns The day name
+ */
+function parseDayFull(dayInt: number): string {
+    if (dayInt < 1 || dayInt > 7) return '';
+    return DAYS[dayInt - 1] as string;
 }
 
-function parseDayFull(dayInt: number) {
-    switch (dayInt) {
-        case 1:
-            return 'Monday';
-        case 2:
-            return 'Tuesday';
-        case 3:
-            return 'Wednesday';
-        case 4:
-            return 'Thursday';
-        case 5:
-            return 'Friday';
-        case 6:
-            return 'Saturday';
-        default:
-            return 'Sunday';
-    }
+/**
+ * @brief Converts a day number into its shortened name (ex. 1 -> 'Mon')
+ * @param dayInt The day number
+ * @returns The shortened day name
+ */
+function parseDay(dayInt: number): string {
+    return parseDayFull(dayInt)!.substring(0, 3);
 }
 </script>
 

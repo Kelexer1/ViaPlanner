@@ -7,6 +7,10 @@ type TooltipBinding = TooltipOptions & {
   disabled: boolean;
 };
 
+/**
+ * @returns Returns a tooltip JSON for v-tooltip, ensuring that tooltips are disabled on small screens (its buggy)
+ * @returns The tooltip JSON
+ */
 export function useResponsiveTooltip() {
   const { isSmallDevice } = useWindowSize();
 

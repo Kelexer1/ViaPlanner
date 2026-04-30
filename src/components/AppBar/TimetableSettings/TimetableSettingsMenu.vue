@@ -1,20 +1,20 @@
 <template>
-  <div>
-    <Drawer v-model:visible="visible" header="Timetable Generation Settings" :dismissable="true" position="right"
-      :pt:root:class="'w-[26rem]'" :pt:header:class="'text-text-secondary'">
-      <div v-show="isSmallDevice" class="w-[100%] flex flex-row justify-center items-center gap-2">
-        <BuildTimetableButton />
-      </div>
-      <TextDivider text="Time Settings" />
-      <PrefferedTimeSettingsGroup />
-      <TextDivider text="Gap Settings" />
-      <PrefferedGapSettingsGroup />
-      <TextDivider text="Misc. Settings" />
-      <MiscSettingsGroup />
-    </Drawer>
-    <Button icon="pi pi-cog" rounded v-tooltip.bottom="tooltip('Timetable Settings')" @click="visible = true"
-      :pt:icon:class="'text-white'" />
-  </div>
+	<div>
+		<Drawer v-model:visible="visible" header="Timetable Generation Settings" :dismissable="true" position="right"
+			:pt:root:class="'w-[26rem]'" :pt:header:class="'text-text-secondary'">
+			<div v-show="isSmallDevice" class="w-[100%] flex flex-row justify-center items-center gap-2">
+				<BuildTimetableButton />
+			</div>
+			<TextDivider text="Time Settings" />
+			<PrefferedTimeSettingsGroup />
+			<TextDivider text="Gap Settings" />
+			<PrefferedGapSettingsGroup />
+			<TextDivider text="Misc. Settings" />
+			<MiscSettingsGroup />
+		</Drawer>
+		<Button icon="pi pi-cog" rounded v-tooltip.bottom="tooltip('Timetable Settings')" @click="visible = true"
+			:pt:icon:class="'text-white'" />
+	</div>
 </template>
 
 <script setup lang="ts">

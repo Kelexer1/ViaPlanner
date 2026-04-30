@@ -22,7 +22,6 @@ const popover: Ref<any> = ref(null)
 const { tooltip } = useResponsiveTooltip();
 
 function toggleSearchPanel(event: any) {
-    if (!popover) return;
     popover.value.toggle(event);
 }
 </script>
