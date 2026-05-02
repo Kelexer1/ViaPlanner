@@ -1,7 +1,7 @@
 <template>
 	<div class="h-full cursor-pointer select-none" @click="toggleHourLock()">
 		<h2 class="mr-[10px] text-[12px] md:text-[16px] font-semibold">{{ time }}</h2>
-		<div v-if="last && locked" class="mt-2 flex flex-row items-center justify-center"
+		<div v-if="last && locked && !isExport" class="mt-2 flex flex-row items-center justify-center"
 			v-tooltip.right="tooltip(lockTooltipText)">
 			<Button @click.stop="toggleHourLock()" icon="pi pi-lock" rounded text iconClass="text-text-primary" />
 		</div>
@@ -31,6 +31,11 @@ const props = defineProps({
 	semester: {
 		type: String,
 		required: true
+	},
+	isExport: {
+		type: Boolean,
+		required: false,
+		default: false
 	}
 })
 

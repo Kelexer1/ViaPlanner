@@ -3,7 +3,7 @@
 		<div class="flex flex-row justify-center items-center mt-4 mx-0 relative w-full cursor-pointer select-none"
 			@click="toggleDayLock()">
 			<h3 class="day-label mb-0 mx-0 font-bold text-sm md:text-md lg:text-lg">{{ weekdayLabel || weekday }}</h3>
-			<div v-if="locked" class="absolute -bottom-6" v-tooltip.bottom="tooltip(toolTipText)">
+			<div v-if="locked && !isExport" class="absolute -bottom-6" v-tooltip.bottom="tooltip(toolTipText)">
 				<Button @click.stop="toggleDayLock()" icon="pi pi-lock" rounded text iconClass="text-text-primary" />
 			</div>
 		</div>
@@ -30,6 +30,11 @@ const props = defineProps({
 	semester: {
 		type: String,
 		required: true
+	},
+	isExport: {
+		type: Boolean,
+		required: false,
+		default: false
 	}
 });
 

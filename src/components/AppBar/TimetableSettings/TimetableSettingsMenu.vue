@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div class="flex h-full items-center">
 		<Drawer v-model:visible="visible" header="Timetable Generation Settings" :dismissable="true" position="right"
 			:pt:root:class="'w-[26rem]'" :pt:header:class="'text-text-secondary'">
 			<div v-show="isSmallDevice" class="w-[100%] flex flex-row justify-center items-center gap-2">

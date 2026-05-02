@@ -1,12 +1,13 @@
 <template>
 	<div :id="`exportTemplate-${semester}`" class="export-template">
+		<link rel="stylesheet" href="https://unpkg.com/primeicons/primeicons.css">
 		<div class="export-template__header">
 			<img src="../../assets/VIA-Planner-Blue.png" class="max-w-[130px] h-[60px] m-2 mr-0">
 			<p class="export-template__subtitle ml-2">{{ title }} Timetable</p>
 		</div>
 
 		<div class="export-template__content">
-			<Timetable :timetable="timetable" :semester="semester" />
+			<Timetable :timetable="timetable" :semester="semester" :isExport="true" />
 		</div>
 
 		<div class="export-template__footer">

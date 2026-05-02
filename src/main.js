@@ -15,7 +15,6 @@ import vueHtml2canvas from 'vue-html2canvas';
 import VueMobileDetection from "vue-mobile-detection";
 
 import 'regenerator-runtime/runtime';
-import 'roboto-fontface/css/roboto/roboto-fontface.css';
 
 import App from './App.vue'
 import router from './router';

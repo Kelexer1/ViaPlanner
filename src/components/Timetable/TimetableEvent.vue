@@ -7,14 +7,14 @@
 			@mouseleave="setHovered(false)" @click="handleEventClick()">
 			<div class="flex flex-row justify-between">
 				<h3 class="font-bold relative">{{ eventData.course }}</h3>
-				<div v-if="!isSmallDevice" class="absolute right-0">
+				<div v-if="!isSmallDevice && !isExport" class="absolute right-0">
 					<Button v-if="sectionLocked" rounded text icon="pi pi-lock" @click.stop="blockSectionToggle()"
 						iconClass="text-white" />
 					<Button v-else-if="hovered || isSmallDevice" rounded text icon="pi pi-lock-open"
 						@click.stop="blockSectionToggle()" iconClass="text-white" />
 				</div>
 			</div>
-			<p :class="{ 'text-red-300': sectionLocked }">{{ eventData.activity }} ({{
+			<p :class="{ 'text-red-300': sectionLocked && !isExport }">{{ eventData.activity }} ({{
 				activityData.building.buildingCode ?
 					activityData.building.buildingCode : 'Online' }})</p>
 			<p>{{ parseTime(eventData.start) }} - {{ parseTime(eventData.end) }}</p>
@@ -56,6 +56,11 @@ const props = defineProps({
 	},
 	isEmpty: {
 		type: Boolean
+	},
+	isExport: {
+		type: Boolean,
+		required: false,
+		default: false
 	}
 });
 
@@ -201,12 +206,6 @@ function setHovered(value: boolean) {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css?family=Montserrat&display=swap');
-
-* {
-	font-family: 'Montserrat', sans-serif;
-}
-
 .unselectable {
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;

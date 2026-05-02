@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
 @import 'tailwindcss';
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -73,14 +74,10 @@
   --color-divisional-highlight: rgb(100, 100, 0);
 }
 
-/* body {
-  @apply bg-background transition-colors duration-1000;
-}
-
-.timetablecell {
-  @apply transition-colors duration-1000;
-} */
-
 .dark body {
   @apply bg-primary-950 text-white;
+}
+
+* {
+  font-family: 'Montserrat', sans-serif;
 }

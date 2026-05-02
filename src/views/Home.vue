@@ -12,7 +12,7 @@
 		</div>
 		<div
 			class="fixed top-0 left-0 z-30 flex flex-row h-[75px] w-full items-center justify-center md:justify-start bg-main-accent">
-			<img src="../assets/VIA-Logo-White.png" class="max-w-[35px] md:max-w-[50px] my-2">
+			<img src="../assets/VIA-Logo-White.png" class="max-w-[35px] md:max-w-[50px] my-2 ml-2">
 			<Button icon="pi pi-replay" rounded @click="store.undo()" class="m-2 md:ml-3"
 				v-tooltip.bottom="tooltip('Undo')" :pt:root:class="'!w-[2rem] !h-[2rem] md:!w-[2.5rem] md:!h-[2.5rem]'"
 				:pt:icon:class="'text-white text-sm md:text-lg'" />
@@ -20,7 +20,7 @@
 				v-tooltip.bottom="tooltip('Redo')" :pt:root:class="'!w-[2rem] !h-[2rem] md:!w-[2.5rem] md:!h-[2.5rem]'"
 				:pt:icon:class="'text-white text-sm md:text-lg'" />
 			<CourseSearchBar class="mr-2" />
-			<div class="flex flex-row gap-2">
+			<div class="flex flex-row items-center gap-2">
 				<ChangeTheme />
 				<SearchSettings />
 				<TimetableSettingsMenu v-show="!isSmallDevice" />
@@ -91,11 +91,3 @@ onBeforeUnmount(() => {
 	if (typeof document !== 'undefined') document.body.style.overflow = '';
 });
 </script>
-
-<style scoped>
-@import url('https://fonts.googleapis.com/css?family=Montserrat&display=swap');
-
-.footer {
-	font-family: 'Montserrat', sans-serif;
-}
-</style>

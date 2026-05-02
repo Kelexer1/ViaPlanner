@@ -75,17 +75,11 @@ const imgSrc = computed(() => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css?family=Montserrat&display=swap');
-
 .right-scroll-area {
 	position: relative;
 	height: 90% !important;
 	background-color: transparent;
 	padding-left: 10px;
 	padding-right: 10px;
-}
-
-* {
-	font-family: 'Montserrat', sans-serif;
 }
 </style>

@@ -80,10 +80,10 @@
                 </div>
                 <br>
                 <!-- Notes -->
-                <div v-if="section.notes && section.notes.length" class="ml-0">
+                <div v-if="notes && notes.length > 0" class="ml-0">
                     <span class="font-medium">Notes: </span>
                     <ul class="list-disc pl-2">
-                        <li v-for="note in section.notes" :key="note.name">{{ note.content.replace(/<[^>]*>/g, '') }}</li>
+                        <li v-for="note in notes" :key="note.name">{{ note.content.replace(/<[^>]*>/g, '') }}</li>
                     </ul>
                 </div>
             </div>
@@ -120,6 +120,10 @@ const props = defineProps({
         type: Object as PropType<Record<string, any> | undefined>,
         required: false
     }
+});
+
+const notes = computed(() => {
+    return props.section.notes.filter((note: any) => note.content)
 });
 
 const sectionConflicts = computed(() => {

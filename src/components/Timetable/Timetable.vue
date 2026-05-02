@@ -5,7 +5,7 @@
 			<div class="top-margin" />
 			<div v-for="(time, index) in timeRange" :key="index" class="time-axis-number w-[3.25rem] md:w-[4rem]"
 				:style="{ height: oneHourHeight }">
-				<HourSwitch :time="time" :last="index !== timeRange.length - 1" :semester="semester" />
+				<HourSwitch :time="time" :last="index !== timeRange.length - 1" :semester="semester" :isExport="isExport" />
 			</div>
 		</div>
 		<div class="col-11 w-full pr-8">
@@ -14,7 +14,7 @@
 				<div v-for="(weekday, index) in weekdays" :key="weekday" class="col">
 					<WeekdaySwitch :weekday="weekday"
 						:weekdayLabel="useShortWeekdays ? weekdaysShort[index] as string : weekday" :semester="semester"
-						class="pb-[20px]" />
+						class="pb-[20px]" :isExport="isExport" />
 				</div>
 			</div>
 			<!-- Timetable Content -->
@@ -28,7 +28,7 @@
 							'border-bottom': '1px solid gray',
 							...(day === 'Monday' ? { 'border-left': '1px solid gray' } : {})
 						} : {}),
-					}" :class="(hour !== timeRange.length) ? 'bg-timetablecell timetablecell' : 'timetablecell'" />
+					}" :class="(hour !== timeRange.length) ? (isExport ? 'bg-white timetablecell' : 'bg-timetablecell timetablecell') : 'timetablecell'" />
 					<div v-for="event in getEventsForDay(meetingSections) as Array<any>"
 						:key="event.start + '-' + event.currEnd + (event.overlapIndex || 0)"
 						class="absolute left-0 right-0 flex pb-[1px]" :style="{
@@ -42,14 +42,14 @@
 						<template v-if="!event.isEmpty">
 							<TimetableEvent v-for="(courseActivityData, index) in event.courses"
 								:key="courseActivityData.course + courseActivityData.activity + index"
-								:eventData="courseActivityData" :semester="semester" :day="day" :isEmpty="false"
+								:eventData="courseActivityData" :semester="semester" :day="day" :isEmpty="false" :isExport="isExport"
 								:style="{ 'background-color': store.selectedCourses[store.selectedSession][courseActivityData.course].color }" />
 						</template>
-						<template v-else>
+						<template v-else-if="!isExport">
 							<TimetableEvent :eventData="{
 								start: event.currStart,
 								end: event.currEnd
-							}" :semester="semester" :day="day" :isEmpty="true" />
+							}" :semester="semester" :day="day" :isEmpty="true" :isExport="isExport" />
 						</template>
 					</div>
 				</div>
@@ -79,6 +79,11 @@ const props = defineProps({
 	semester: {
 		type: String,
 		required: true
+	},
+	isExport: {
+		type: Boolean,
+		required: false,
+		default: false
 	}
 });
 
@@ -282,12 +287,6 @@ function getEventsForDay(meetingSections: Array<any>) {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css?family=Montserrat&display=swap');
-
-* {
-	font-family: 'Montserrat', sans-serif;
-}
-
 .col {
 	padding: 0px !important;
 }

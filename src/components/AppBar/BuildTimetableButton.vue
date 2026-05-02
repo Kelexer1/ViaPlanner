@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="flex h-full items-center">
         <Button label="Build Timetable" icon="pi pi-calendar" iconPos="left" class="text-white"
             @click="() => store.generateTimetable()" />
     </div>

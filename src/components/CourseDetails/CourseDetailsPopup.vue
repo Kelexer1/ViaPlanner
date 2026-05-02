@@ -22,17 +22,17 @@
                 <!-- Icon Bar -->
                 <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-2">
                     <!-- Campus -->
-                    <span class="flex items-start gap-2">
+                    <span class="flex items-center gap-2">
                         <i class="pi pi-home"></i>
                         <span class="break-words">{{ courseData.campus }}</span>
                     </span>
                     <!-- Session -->
-                    <span class="flex items-start gap-2">
+                    <span class="flex items-center gap-2">
                         <i class="pi pi-clock"></i>
                         <span class="break-words">{{ parseSession(courseData.sessions) }}</span>
                     </span>
                     <!-- Distribution Requirement -->
-                    <span class="flex items-start gap-2">
+                    <span class="flex items-center gap-2">
                         <i class="pi pi-graduation-cap"></i>
                         <span class="break-words">{{ courseData.maxCredit }} Credits ({{
                             parseDistributionRequirements(courseData.breadths) }})</span>
