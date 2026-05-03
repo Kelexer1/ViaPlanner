@@ -23,9 +23,9 @@
 			<div class="flex flex-row items-center gap-2">
 				<ChangeTheme />
 				<SearchSettings />
-				<TimetableSettingsMenu v-show="!isSmallDevice" />
+				<TimetableSettingsMenu v-if="!isSmallDevice" />
 				<SessionSelect />
-				<BuildTimetableButton v-show="!isSmallDevice" />
+				<BuildTimetableButton v-if="!isSmallDevice" />
 			</div>
 		</div>
 		<div v-if="isSmallDevice && sidebarOpen" class="fixed inset-0 z-[120] md:hidden" role="dialog" aria-modal="true"
