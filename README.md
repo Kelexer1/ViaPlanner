@@ -38,4 +38,4 @@ yarn dev
 ```
 
 ## .env Setup
-VITE_API_BASE_URL: A string representation of the API endpoint, for example "http://127.0.0.1:3000"
+**VITE_API_BASE_URL**: A string representation of the API endpoint, for example "http://127.0.0.1:3000"
