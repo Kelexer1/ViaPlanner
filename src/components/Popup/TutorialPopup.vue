@@ -114,7 +114,7 @@ function getImageStyle(path: string) {
 		width: '100%',
 		height: imageHeight.value,
 		backgroundImage: `url(${path})`,
-		backgroundSize: 'auto 102%',
+		backgroundSize: isSmallDevice.value ? 'auto 102%' : '100% auto',
 		backgroundPosition: 'center',
 		backgroundRepeat: 'no-repeat',
 	} as Record<string, string>;
